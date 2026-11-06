@@ -1,0 +1,10 @@
+__pycache__/
+.patch-check/
+*.pyc
+*.o
+*.ko
+*.mod*
+.env
+.env.*
+benchmarks/lb_bench
+benchmarks/lb_affinity_probe

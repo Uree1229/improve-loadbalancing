@@ -1,0 +1,14 @@
+--- a/kernel/sched/fair.c
++++ b/kernel/sched/fair.c
+@@ -7217,6 +7217,11 @@
+ 
+ 	delta = rq_clock_task(env->src_rq) - p->se.exec_start;
+ 
++	/* Let a newly idle CPU pull sooner when CFS work is queued. */
++	if (env->idle == CPU_NEWLY_IDLE &&
++	    env->src_rq->cfs.h_nr_running > 1)
++		return delta < (s64)sysctl_sched_migration_cost / 2;
++
+ 	return delta < (s64)sysctl_sched_migration_cost;
+ }
+ 

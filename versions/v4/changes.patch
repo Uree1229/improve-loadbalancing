@@ -1,0 +1,12 @@
+--- a/kernel/sched/fair.c
++++ b/kernel/sched/fair.c
+@@ -8784,7 +8784,8 @@
+  * Max backoff if we encounter pinned tasks. Pretty arbitrary value, but
+  * so long as it is large enough.
+  */
+-#define MAX_PINNED_INTERVAL	512
++/* Bound affinity-failure backoff to notice widened masks sooner. */
++#define MAX_PINNED_INTERVAL	32
+ 
+ static inline bool
+ asym_active_balance(struct lb_env *env)

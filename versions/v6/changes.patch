@@ -1,0 +1,261 @@
+Subject: [PATCH] sched/fair: rebalance allowed targets on affinity expansion
+
+Notify allowed CPUs through irq_work after a runnable CFS affinity mask
+expands. Reset their domain backoff once in SCHED_SOFTIRQ; keep ordinary
+NOHZ handling and the original pinned interval limit.
+
+---
+diff --git a/kernel/sched/core.c b/kernel/sched/core.c
+--- a/kernel/sched/core.c
++++ b/kernel/sched/core.c
+@@ -1728,6 +1728,9 @@
+ 	struct rq_flags rf;
+ 	struct rq *rq;
+ 	int ret = 0;
++#if defined(CONFIG_SMP) && defined(CONFIG_IRQ_WORK)
++	bool affinity_expanded;
++#endif
+ 
+ 	rq = task_rq_lock(p, &rf);
+ 	update_rq_clock(rq);
+@@ -1757,7 +1760,18 @@
+ 		goto out;
+ 	}
+ 
++#if defined(CONFIG_SMP) && defined(CONFIG_IRQ_WORK)
++	/* Equal masks returned above, so this detects a strict superset. */
++	affinity_expanded = cpumask_subset(&p->cpus_mask, new_mask);
++#endif
+ 	do_set_cpus_allowed(p, new_mask);
++
++#if defined(CONFIG_SMP) && defined(CONFIG_IRQ_WORK)
++	if (affinity_expanded && !(p->flags & PF_KTHREAD) &&
++	    p->sched_class == &fair_sched_class &&
++	    task_on_rq_queued(p) && rq->cfs.h_nr_running > 1)
++		sched_affinity_rebalance(rq, new_mask);
++#endif
+ 
+ 	if (p->flags & PF_KTHREAD) {
+ 		/*
+diff --git a/kernel/sched/sched.h b/kernel/sched/sched.h
+--- a/kernel/sched/sched.h
++++ b/kernel/sched/sched.h
+@@ -1878,6 +1878,15 @@
+ extern void init_sched_rt_class(void);
+ extern void init_sched_fair_class(void);
+ 
++#if defined(CONFIG_SMP) && defined(CONFIG_IRQ_WORK)
++void sched_affinity_rebalance(struct rq *source,
++			      const struct cpumask *allowed);
++DECLARE_PER_CPU(unsigned long, sched_affinity_hints);
++DECLARE_PER_CPU(unsigned long, sched_affinity_queues);
++DECLARE_PER_CPU(unsigned long, sched_affinity_works);
++DECLARE_PER_CPU(unsigned long, sched_affinity_resets);
++#endif
++
+ extern void reweight_task(struct task_struct *p, int prio);
+ 
+ extern void resched_curr(struct rq *rq);
+diff --git a/kernel/sched/fair.c b/kernel/sched/fair.c
+--- a/kernel/sched/fair.c
++++ b/kernel/sched/fair.c
+@@ -22,6 +22,7 @@
+  */
+ #include "sched.h"
+ 
++#include <linux/irq_work.h>
+ #include <trace/events/sched.h>
+ 
+ /*
+@@ -9289,7 +9290,8 @@
+  *
+  * Balancing parameters are set up in init_sched_domains.
+  */
+-static void rebalance_domains(struct rq *rq, enum cpu_idle_type idle)
++static void rebalance_domains(struct rq *rq, enum cpu_idle_type idle,
++			      bool affinity_reset)
+ {
+ 	int continue_balancing = 1;
+ 	int cpu = rq->cpu;
+@@ -9337,7 +9339,18 @@
+ 				goto out;
+ 		}
+ 
+-		if (time_after_eq(jiffies, sd->last_balance + interval)) {
++		if (affinity_reset) {
++			/* An expanded mask invalidates the previous backoff. */
++			sd->balance_interval = sd->min_interval;
++			interval = get_sd_balance_interval(sd,
++						  idle != CPU_IDLE);
++#ifdef CONFIG_IRQ_WORK
++			this_cpu_inc(sched_affinity_resets);
++#endif
++		}
++
++		if (affinity_reset ||
++		    time_after_eq(jiffies, sd->last_balance + interval)) {
+ 			if (load_balance(cpu, rq, sd, idle, &continue_balancing)) {
+ 				/*
+ 				 * The LBF_DST_PINNED logic could have changed
+@@ -9395,6 +9408,74 @@
+ 	return unlikely(!rcu_dereference_sched(rq->sd));
+ }
+ 
++#ifdef CONFIG_IRQ_WORK
++struct affinity_balance_work {
++	struct irq_work work;
++	unsigned int pending;
++};
++
++static DEFINE_PER_CPU_SHARED_ALIGNED(struct affinity_balance_work,
++				    affinity_balance_work);
++DEFINE_PER_CPU(unsigned long, sched_affinity_hints);
++DEFINE_PER_CPU(unsigned long, sched_affinity_queues);
++DEFINE_PER_CPU(unsigned long, sched_affinity_works);
++DEFINE_PER_CPU(unsigned long, sched_affinity_resets);
++
++static void affinity_balance_irq(struct irq_work *work)
++{
++	struct affinity_balance_work *state;
++
++	state = container_of(work, struct affinity_balance_work, work);
++	this_cpu_inc(sched_affinity_works);
++	if (!cpu_active(smp_processor_id())) {
++		WRITE_ONCE(state->pending, 0);
++		return;
++	}
++
++	WRITE_ONCE(state->pending, 1);
++	raise_softirq_irqoff(SCHED_SOFTIRQ);
++}
++
++void sched_affinity_rebalance(struct rq *source,
++			      const struct cpumask *allowed)
++{
++	int cpu;
++
++	/* Preemption is disabled; CPU deactivation waits for these readers. */
++	lockdep_assert_held(&source->lock);
++	this_cpu_inc(sched_affinity_hints);
++	rcu_read_lock();
++	for_each_cpu_and(cpu, allowed, cpu_active_mask) {
++		struct rq *target = cpu_rq(cpu);
++		struct affinity_balance_work *state;
++
++		if (cpu == cpu_of(source) || on_null_domain(target) ||
++		    !cpumask_test_cpu(cpu_of(source), target->rd->span))
++			continue;
++
++		state = &per_cpu(affinity_balance_work, cpu);
++		if (irq_work_queue_on(&state->work, cpu))
++			this_cpu_inc(sched_affinity_queues);
++	}
++	rcu_read_unlock();
++}
++
++static bool take_affinity_balance(void)
++{
++	struct affinity_balance_work *state;
++
++	state = this_cpu_ptr(&affinity_balance_work);
++	if (likely(!READ_ONCE(state->pending)))
++		return false;
++	return xchg(&state->pending, 0);
++}
++#else
++static bool take_affinity_balance(void)
++{
++	return false;
++}
++#endif
++
+ #ifdef CONFIG_NO_HZ_COMMON
+ /*
+  * idle load balancing details
+@@ -9740,7 +9821,7 @@
+ 			rq_unlock_irqrestore(rq, &rf);
+ 
+ 			if (flags & NOHZ_BALANCE_KICK)
+-				rebalance_domains(rq, CPU_IDLE);
++				rebalance_domains(rq, CPU_IDLE, false);
+ 		}
+ 
+ 		if (time_after(next_balance, rq->next_balance)) {
+@@ -9764,7 +9845,7 @@
+ 	}
+ 
+ 	if (flags & NOHZ_BALANCE_KICK)
+-		rebalance_domains(this_rq, CPU_IDLE);
++		rebalance_domains(this_rq, CPU_IDLE, false);
+ 
+ 	WRITE_ONCE(nohz.next_blocked,
+ 		now + msecs_to_jiffies(LOAD_AVG_PERIOD));
+@@ -9977,6 +10058,15 @@
+ 	struct rq *this_rq = this_rq();
+ 	enum cpu_idle_type idle = this_rq->idle_balance ?
+ 						CPU_IDLE : CPU_NOT_IDLE;
++	bool affinity_reset = take_affinity_balance();
++
++	if (affinity_reset) {
++		/* Do local work even if the ordinary NOHZ pass aborts. */
++		idle = idle_cpu(this_rq->cpu) ? CPU_IDLE : CPU_NOT_IDLE;
++		update_blocked_averages(this_rq->cpu);
++		rebalance_domains(this_rq, idle, true);
++		idle = idle_cpu(this_rq->cpu) ? CPU_IDLE : CPU_NOT_IDLE;
++	}
+ 
+ 	/*
+ 	 * If this CPU has a pending nohz_balance_kick, then do the
+@@ -9988,10 +10078,12 @@
+ 	 */
+ 	if (nohz_idle_balance(this_rq, idle))
+ 		return;
++	if (affinity_reset)
++		return;
+ 
+ 	/* normal load balance */
+ 	update_blocked_averages(this_rq->cpu);
+-	rebalance_domains(this_rq, idle);
++	rebalance_domains(this_rq, idle, false);
+ }
+ 
+ /*
+@@ -10610,6 +10702,17 @@
+ __init void init_sched_fair_class(void)
+ {
+ #ifdef CONFIG_SMP
++#ifdef CONFIG_IRQ_WORK
++	int cpu;
++
++	for_each_possible_cpu(cpu) {
++		struct affinity_balance_work *state;
++
++		state = &per_cpu(affinity_balance_work, cpu);
++		init_irq_work(&state->work, affinity_balance_irq);
++		state->pending = 0;
++	}
++#endif
+ 	open_softirq(SCHED_SOFTIRQ, run_rebalance_domains);
+ 
+ #ifdef CONFIG_NO_HZ_COMMON
+diff --git a/kernel/sched/debug.c b/kernel/sched/debug.c
+--- a/kernel/sched/debug.c
++++ b/kernel/sched/debug.c
+@@ -667,6 +667,17 @@
+ #undef P
+ #undef PN
+ 
++#if defined(CONFIG_SMP) && defined(CONFIG_IRQ_WORK)
++	SEQ_printf(m, "  .%-30s: %lu\n", "affinity_hints",
++		   per_cpu(sched_affinity_hints, cpu));
++	SEQ_printf(m, "  .%-30s: %lu\n", "affinity_queues",
++		   per_cpu(sched_affinity_queues, cpu));
++	SEQ_printf(m, "  .%-30s: %lu\n", "affinity_works",
++		   per_cpu(sched_affinity_works, cpu));
++	SEQ_printf(m, "  .%-30s: %lu\n", "affinity_resets",
++		   per_cpu(sched_affinity_resets, cpu));
++#endif
++
+ #ifdef CONFIG_SMP
+ #define P64(n) SEQ_printf(m, "  .%-30s: %Ld\n", #n, rq->n);
+ 	P64(avg_idle);

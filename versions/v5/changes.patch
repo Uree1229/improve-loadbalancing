@@ -1,0 +1,205 @@
+--- a/kernel/sched/core.c
++++ b/kernel/sched/core.c
+@@ -35,6 +35,11 @@
+ EXPORT_TRACEPOINT_SYMBOL_GPL(sched_overutilized_tp);
+ 
+ DEFINE_PER_CPU_SHARED_ALIGNED(struct rq, runqueues);
++
++#if defined(CONFIG_SMP) && defined(CONFIG_NO_HZ_COMMON)
++DEFINE_PER_CPU(unsigned long, sched_affinity_hints);
++DEFINE_PER_CPU(unsigned long, sched_affinity_passes);
++#endif
+ 
+ #ifdef CONFIG_SCHED_DEBUG
+ /*
+@@ -643,7 +648,7 @@
+ 	 * We can't run Idle Load Balance on this CPU for this time so we
+ 	 * cancel it and clear NOHZ_BALANCE_KICK
+ 	 */
+-	atomic_andnot(NOHZ_KICK_MASK, nohz_flags(cpu));
++	atomic_andnot(NOHZ_KICK_CLEAR_MASK, nohz_flags(cpu));
+ 	return false;
+ }
+ 
+@@ -1728,6 +1733,9 @@
+ 	struct rq_flags rf;
+ 	struct rq *rq;
+ 	int ret = 0;
++#ifdef CONFIG_NO_HZ_COMMON
++	bool affinity_expanded;
++#endif
+ 
+ 	rq = task_rq_lock(p, &rf);
+ 	update_rq_clock(rq);
+@@ -1757,7 +1765,21 @@
+ 		goto out;
+ 	}
+ 
++#ifdef CONFIG_NO_HZ_COMMON
++	/* Equal masks returned above; only a strict superset is a hint. */
++	affinity_expanded = cpumask_subset(&p->cpus_mask, new_mask);
++#endif
+ 	do_set_cpus_allowed(p, new_mask);
++
++#ifdef CONFIG_NO_HZ_COMMON
++	if (affinity_expanded && !(p->flags & PF_KTHREAD) &&
++	    p->sched_class == &fair_sched_class &&
++	    task_on_rq_queued(p) && rq->cfs.h_nr_running > 1) {
++		/* Publish after updating the mask, under the source rq lock. */
++		WRITE_ONCE(rq->affinity_balance_pending, 1);
++		this_cpu_inc(sched_affinity_hints);
++	}
++#endif
+ 
+ 	if (p->flags & PF_KTHREAD) {
+ 		/*
+@@ -6783,6 +6805,7 @@
+ 		rq->last_load_update_tick = jiffies;
+ 		rq->last_blocked_load_update_tick = jiffies;
+ 		atomic_set(&rq->nohz_flags, 0);
++		rq->affinity_balance_pending = 0;
+ #endif
+ #endif /* CONFIG_SMP */
+ 		hrtick_rq_init(rq);
+--- a/kernel/sched/sched.h
++++ b/kernel/sched/sched.h
+@@ -867,6 +867,8 @@
+ 	unsigned long		last_load_update_tick;
+ 	unsigned long		last_blocked_load_update_tick;
+ 	unsigned int		has_blocked_load;
++	/* Coalesce runnable CFS affinity expansions until the next tick. */
++	unsigned int		affinity_balance_pending;
+ #endif /* CONFIG_SMP */
+ 	unsigned int		nohz_tick_stopped;
+ 	atomic_t nohz_flags;
+@@ -2220,6 +2222,15 @@
+ 
+ #define NOHZ_KICK_MASK	(NOHZ_BALANCE_KICK | NOHZ_STATS_KICK)
+ 
++/* Keep this out of the mask used to request ordinary periodic work. */
++#define NOHZ_AFFINITY_KICK	BIT(2)
++#define NOHZ_KICK_CLEAR_MASK	(NOHZ_KICK_MASK | NOHZ_AFFINITY_KICK)
++
++#ifdef CONFIG_SMP
++DECLARE_PER_CPU(unsigned long, sched_affinity_hints);
++DECLARE_PER_CPU(unsigned long, sched_affinity_passes);
++#endif
++
+ #define nohz_flags(cpu)	(&cpu_rq(cpu)->nohz_flags)
+ 
+ extern void nohz_balance_exit_idle(struct rq *rq);
+--- a/kernel/sched/fair.c
++++ b/kernel/sched/fair.c
+@@ -9289,7 +9289,8 @@
+  *
+  * Balancing parameters are set up in init_sched_domains.
+  */
+-static void rebalance_domains(struct rq *rq, enum cpu_idle_type idle)
++static void rebalance_domains(struct rq *rq, enum cpu_idle_type idle,
++			      bool affinity_kick)
+ {
+ 	int continue_balancing = 1;
+ 	int cpu = rq->cpu;
+@@ -9337,7 +9338,8 @@
+ 				goto out;
+ 		}
+ 
+-		if (time_after_eq(jiffies, sd->last_balance + interval)) {
++		if ((affinity_kick && idle == CPU_IDLE && idle_cpu(cpu)) ||
++		    time_after_eq(jiffies, sd->last_balance + interval)) {
+ 			if (load_balance(cpu, rq, sd, idle, &continue_balancing)) {
+ 				/*
+ 				 * The LBF_DST_PINNED logic could have changed
+@@ -9693,6 +9695,8 @@
+ 	struct rq *rq;
+ 
+ 	SCHED_WARN_ON((flags & NOHZ_KICK_MASK) == NOHZ_BALANCE_KICK);
++	if (flags & NOHZ_AFFINITY_KICK)
++		this_cpu_inc(sched_affinity_passes);
+ 
+ 	/*
+ 	 * We assume there will be no idle load after this update and clear
+@@ -9732,7 +9736,8 @@
+ 		 * If time for next balance is due,
+ 		 * do the balance.
+ 		 */
+-		if (time_after_eq(jiffies, rq->next_balance)) {
++		if ((flags & NOHZ_AFFINITY_KICK) ||
++		    time_after_eq(jiffies, rq->next_balance)) {
+ 			struct rq_flags rf;
+ 
+ 			rq_lock_irqsave(rq, &rf);
+@@ -9740,7 +9745,8 @@
+ 			rq_unlock_irqrestore(rq, &rf);
+ 
+ 			if (flags & NOHZ_BALANCE_KICK)
+-				rebalance_domains(rq, CPU_IDLE);
++				rebalance_domains(rq, CPU_IDLE,
++						  flags & NOHZ_AFFINITY_KICK);
+ 		}
+ 
+ 		if (time_after(next_balance, rq->next_balance)) {
+@@ -9764,7 +9770,8 @@
+ 	}
+ 
+ 	if (flags & NOHZ_BALANCE_KICK)
+-		rebalance_domains(this_rq, CPU_IDLE);
++		rebalance_domains(this_rq, CPU_IDLE,
++				  flags & NOHZ_AFFINITY_KICK);
+ 
+ 	WRITE_ONCE(nohz.next_blocked,
+ 		now + msecs_to_jiffies(LOAD_AVG_PERIOD));
+@@ -9793,12 +9800,12 @@
+ 		return false;
+ 
+ 	if (idle != CPU_IDLE) {
+-		atomic_andnot(NOHZ_KICK_MASK, nohz_flags(this_cpu));
++		atomic_andnot(NOHZ_KICK_CLEAR_MASK, nohz_flags(this_cpu));
+ 		return false;
+ 	}
+ 
+ 	/* could be _relaxed() */
+-	flags = atomic_fetch_andnot(NOHZ_KICK_MASK, nohz_flags(this_cpu));
++	flags = atomic_fetch_andnot(NOHZ_KICK_CLEAR_MASK, nohz_flags(this_cpu));
+ 	if (!(flags & NOHZ_KICK_MASK))
+ 		return false;
+ 
+@@ -9991,7 +9998,7 @@
+ 
+ 	/* normal load balance */
+ 	update_blocked_averages(this_rq->cpu);
+-	rebalance_domains(this_rq, idle);
++	rebalance_domains(this_rq, idle, false);
+ }
+ 
+ /*
+@@ -10002,6 +10009,13 @@
+ 	/* Don't need to rebalance while attached to NULL domain */
+ 	if (unlikely(on_null_domain(rq)))
+ 		return;
++
++#ifdef CONFIG_NO_HZ_COMMON
++	/* One best-effort idle pass per coalesced expansion, not faster polling. */
++	if (unlikely(READ_ONCE(rq->affinity_balance_pending)) &&
++	    xchg(&rq->affinity_balance_pending, 0))
++		kick_ilb(NOHZ_KICK_MASK | NOHZ_AFFINITY_KICK);
++#endif
+ 
+ 	if (time_after_eq(jiffies, rq->next_balance))
+ 		raise_softirq(SCHED_SOFTIRQ);
+--- a/kernel/sched/debug.c
++++ b/kernel/sched/debug.c
+@@ -667,6 +667,13 @@
+ #undef P
+ #undef PN
+ 
++#if defined(CONFIG_SMP) && defined(CONFIG_NO_HZ_COMMON)
++	SEQ_printf(m, "  .%-30s: %lu\n", "affinity_hints",
++		   per_cpu(sched_affinity_hints, cpu));
++	SEQ_printf(m, "  .%-30s: %lu\n", "affinity_passes",
++		   per_cpu(sched_affinity_passes, cpu));
++#endif
++
+ #ifdef CONFIG_SMP
+ #define P64(n) SEQ_printf(m, "  .%-30s: %Ld\n", #n, rq->n);
+ 	P64(avg_idle);

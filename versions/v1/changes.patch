@@ -1,0 +1,13 @@
+--- a/kernel/sched/fair.c
++++ b/kernel/sched/fair.c
+@@ -7217,6 +7217,10 @@
+ 
+ 	delta = rq_clock_task(env->src_rq) - p->se.exec_start;
+ 
++	/* Give recently run tasks a longer locality window for new-idle pulls. */
++	if (env->idle == CPU_NEWLY_IDLE)
++		return delta < (s64)sysctl_sched_migration_cost * 2;
++
+ 	return delta < (s64)sysctl_sched_migration_cost;
+ }
+ 

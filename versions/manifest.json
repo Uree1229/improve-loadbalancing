@@ -1,0 +1,93 @@
+{
+  "v1": {
+    "description": "newidle hotness 시간 2배 확대",
+    "patch_sha256": "8defd4edc5e46e75102f191fbb75716680b1b4c99d0bcf2e65b16bfaa672f6f7",
+    "snapshot_provenance": "Reconstructed from the preserved original fair.c and exact archived patch; not claimed as a recovered build image.",
+    "files": {
+      "kernel/sched/fair.c": "c2109ad04fd572e78e3079a1ce4bd9f6f268708ae26c58496c7f7a9cb4a48ad7"
+    }
+  },
+  "v2": {
+    "description": "source CFS runnable > 2일 때 확대",
+    "patch_sha256": "74156268603e9f4f572ed6e3f93533dd19ca315129e1ae8c7b850c9fc8d1ef63",
+    "snapshot_provenance": "Reconstructed from the preserved original fair.c and exact archived patch; not claimed as a recovered build image.",
+    "files": {
+      "kernel/sched/fair.c": "e017c064a0008106840e4001af52da55598888dbd3bcb90985ca9b83cff40f69"
+    }
+  },
+  "v3": {
+    "description": "source CFS runnable > 1일 때 시간 절반",
+    "patch_sha256": "6d782b36b82c3510a0c1a1253af9626b595ac91669851957fa9cfbe0f84106de",
+    "snapshot_provenance": "Reconstructed from the preserved original fair.c and exact archived patch; not claimed as a recovered build image.",
+    "files": {
+      "kernel/sched/fair.c": "df870b7b0a8fe712df44761c2d336082677a3e7dde70510a0bcf51bad8e98160"
+    }
+  },
+  "v4": {
+    "description": "pinned backoff 상한 512에서 32로 축소",
+    "patch_sha256": "b9ac58244044ba21033f8f25153598988a53c996eebae1d786014dfe4fa4d6ae",
+    "snapshot_provenance": "Reconstructed from the preserved original fair.c and exact archived patch; not claimed as a recovered build image.",
+    "files": {
+      "kernel/sched/fair.c": "adf6eb1dd33b24ad8b91ba31b9cefc3d8b1a92af2b15ac9cc505e29c27b0fd8e"
+    }
+  },
+  "v5": {
+    "description": "affinity 확장 때 NOHZ 요청",
+    "patch_sha256": "5e0b09107139db432000e4209f4db61fcf8a844e7536c389f726b9817db17c9d",
+    "snapshot_provenance": "Exact preserved candidate source snapshot, verified against its original source manifest.",
+    "files": {
+      "kernel/sched/core.c": "86ab1c7f9e5bba929b19af41d168f98fdefcd65be5f356aa96aa131ace3c5b3f",
+      "kernel/sched/sched.h": "56006254b6192fc94b2bb2207a0173ed33f3c39c1eaffa938958e8704aa379b1",
+      "kernel/sched/fair.c": "2a36ce8d8806a9a626141c479a143793379599c592ba9a468b56047681e6d74a",
+      "kernel/sched/debug.c": "498c330d104aed8cd921ba71f6c815e01f824bd7bab5cc266f9f6ff35e14bc7d"
+    }
+  },
+  "v6": {
+    "description": "대상 CPU irq_work와 로컬 복구 요청",
+    "patch_sha256": "f7004c1cb355a448f09e68f9f06e04b9fbb5e713c3a9e2e45932e1eff0d8d13d",
+    "snapshot_provenance": "Exact preserved candidate source snapshot, verified against its original source manifest.",
+    "files": {
+      "kernel/sched/core.c": "cde531417dd5098f399bcdb60bd4be3a80cc5eeffc9b768846f6d53070aeb4b3",
+      "kernel/sched/sched.h": "d2934a38d11e922539ab4999f6f6c641e8fe366adde5f069b31e71d63784b9e4",
+      "kernel/sched/fair.c": "2b488faee5f21329b5768a27e6ff4f06dbbfa713040ec3bf9f5a5f960d30e2dc",
+      "kernel/sched/debug.c": "717260abbfa58aa08776bc395a323ee468469604fdce5a0c4d72f8381f38f38e"
+    }
+  },
+  "v7": {
+    "description": "일반 루프 특수화와 cold handler 분리",
+    "patch_sha256": "e93eacd6c160d4cedbbf41d98ad2885c0b45456581d2986b2562e2fc999072db",
+    "snapshot_provenance": "Exact preserved candidate source snapshot, verified against its original source manifest.",
+    "files": {
+      "kernel/sched/core.c": "e0c8dacf0aaf1f3731e03ca98cc51bf525a07515106904509e8d3ae30ec23e1b",
+      "kernel/sched/debug.c": "717260abbfa58aa08776bc395a323ee468469604fdce5a0c4d72f8381f38f38e",
+      "kernel/sched/fair.c": "2b6e8884891fd1640268e024a90f3bc46ca910bf2abd155f0b051c21be79b7fe",
+      "kernel/sched/sched.h": "d2934a38d11e922539ab4999f6f6c641e8fe366adde5f069b31e71d63784b9e4"
+    }
+  },
+  "v8": {
+    "description": "별도 tasklet으로 복구 경로 분리",
+    "patch_sha256": "0857e2877be66ea42e92659b77fda810b201cf5304527907810fa5c3c6bc37c8",
+    "snapshot_provenance": "Exact preserved candidate source snapshot, verified against its original source manifest.",
+    "files": {
+      "kernel/sched/affinity.c": "7cbd00275b3ec6c61f650a80391be2812b15ee789c8468785d0997627649f9de",
+      "kernel/sched/core.c": "e0c8dacf0aaf1f3731e03ca98cc51bf525a07515106904509e8d3ae30ec23e1b",
+      "kernel/sched/debug.c": "717260abbfa58aa08776bc395a323ee468469604fdce5a0c4d72f8381f38f38e",
+      "kernel/sched/fair.c": "05e0a733f2e86c521bab5bcfee5e1de10105786bb315d6701104e1c21aacf3f2",
+      "kernel/sched/Makefile": "f15d429896cbe733378539fb2cf5e707ee004eb385cf2ef0cb77ceb7b967e354",
+      "kernel/sched/sched.h": "2aee179341102eb28ec38944791c3cec18f4a40b30e0148f936ee67a419bba5b"
+    }
+  },
+  "v9": {
+    "description": "기본 OFF sysctl로 같은 이미지 교차 비교",
+    "patch_sha256": "32e2b2caa064df87c5f6b5ba46d6c4d5f7e0c0406b4923bb29ac753436108480",
+    "snapshot_provenance": "Exact preserved candidate source snapshot, verified against its original source manifest.",
+    "files": {
+      "kernel/sched/affinity.c": "b4ab4f94b3a8a925e9897fb33ca14c3e6f57801e8d4ada51804c2911e18a1ba8",
+      "kernel/sched/core.c": "e0c8dacf0aaf1f3731e03ca98cc51bf525a07515106904509e8d3ae30ec23e1b",
+      "kernel/sched/debug.c": "717260abbfa58aa08776bc395a323ee468469604fdce5a0c4d72f8381f38f38e",
+      "kernel/sched/fair.c": "05e0a733f2e86c521bab5bcfee5e1de10105786bb315d6701104e1c21aacf3f2",
+      "kernel/sched/Makefile": "f15d429896cbe733378539fb2cf5e707ee004eb385cf2ef0cb77ceb7b967e354",
+      "kernel/sched/sched.h": "2aee179341102eb28ec38944791c3cec18f4a40b30e0148f936ee67a419bba5b"
+    }
+  }
+}
