@@ -4,8 +4,8 @@
 
 ```bash
 # 깨끗한 Linux 5.4.214 전체 소스 디렉터리에서 실행
-git apply --check /path/to/improve-loadbalancing/versions/v9/changes.patch
-git apply /path/to/improve-loadbalancing/versions/v9/changes.patch
+git apply --check /path/to/improve-loadbalancing/versions/v15/changes.patch
+git apply /path/to/improve-loadbalancing/versions/v15/changes.patch
 make olddefconfig
 make -j2
 ```

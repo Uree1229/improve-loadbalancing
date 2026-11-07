@@ -22,4 +22,4 @@ for version,record in manifest.items():
             assert digest(root/'versions'/version/path)==expected,(version,path,'snapshot')
             assert digest(temp/path)==expected,(version,path,'patch output')
     print(version+' patch and source hashes match')
-print('All nine independent patches verified')
+print(f'All {len(manifest)} independent patches verified')

@@ -89,5 +89,85 @@
       "kernel/sched/Makefile": "f15d429896cbe733378539fb2cf5e707ee004eb385cf2ef0cb77ceb7b967e354",
       "kernel/sched/sched.h": "2aee179341102eb28ec38944791c3cec18f4a40b30e0148f936ee67a419bba5b"
     }
+  },
+  "v10": {
+    "description": "idle 상태가 이어질 때 제한된 재시도",
+    "patch_sha256": "c7221ce62bcea0af3a47a7dee9b12ee98cca9727666a96241bf1e3e0cd553928",
+    "snapshot_provenance": "Archived candidate bytes verified against the experiment source manifest. Patch regenerated against Linux 5.4.214.",
+    "files": {
+      "kernel/sched/affinity.c": "5b81983829d967289b8bae03b6343c8e1c04f1bf6d34e76f2dcfb1467b2247cf",
+      "kernel/sched/core.c": "e0c8dacf0aaf1f3731e03ca98cc51bf525a07515106904509e8d3ae30ec23e1b",
+      "kernel/sched/debug.c": "b377daec6cdb314ccdb253a3bd2d6d366129ba13b95799271fdcc08b6cf5616b",
+      "kernel/sched/fair.c": "05e0a733f2e86c521bab5bcfee5e1de10105786bb315d6701104e1c21aacf3f2",
+      "kernel/sched/Makefile": "f15d429896cbe733378539fb2cf5e707ee004eb385cf2ef0cb77ceb7b967e354",
+      "kernel/sched/sched.h": "afbcb0e20ae7422cc370c818a6cba17197a53fddc0e11474cd609acb0b18ca3b"
+    }
+  },
+  "v11": {
+    "description": "idle CPU에서 적격 작업 하나를 가져오는 경로",
+    "patch_sha256": "2b7c092c7671bb3537d1c2e17a2f9dd4d8f538523f6ff417a64b39aefb50a489",
+    "snapshot_provenance": "Archived candidate bytes verified against the experiment source manifest. Patch regenerated against Linux 5.4.214.",
+    "files": {
+      "kernel/sched/affinity.c": "961a0468b6a70a4c3efecd2a48e633431fec985678cbce17b5e18bf5930e2467",
+      "kernel/sched/core.c": "e0c8dacf0aaf1f3731e03ca98cc51bf525a07515106904509e8d3ae30ec23e1b",
+      "kernel/sched/debug.c": "3606614d5ccccb17c48006de2c463787c0be7350a72e484298637d2e32e0f2c6",
+      "kernel/sched/fair.c": "2a0fd8f05fd1a6d86be7d98c3f9fa035468a91c6dbaff98c8fea843f46ab396b",
+      "kernel/sched/Makefile": "f15d429896cbe733378539fb2cf5e707ee004eb385cf2ef0cb77ceb7b967e354",
+      "kernel/sched/sched.h": "c21c6202e5c5a9ddd846a7c118abbdcac52b7317982a29097b0699731742a7dd"
+    }
+  },
+  "v12": {
+    "description": "idle 대상 CPU에 대한 원격 작업 이동",
+    "patch_sha256": "e76e6a4c5b8ae43d162f481768f7605dbc6a9f4847b07f51b8eb315559a96536",
+    "snapshot_provenance": "Archived candidate bytes verified against the experiment source manifest. Patch regenerated against Linux 5.4.214.",
+    "files": {
+      "kernel/sched/affinity.c": "1ee4cd2dadad190bfb2593baf64e8e9deb0b5beac5c3c5cc15f7684ef4ff692a",
+      "kernel/sched/core.c": "e0c8dacf0aaf1f3731e03ca98cc51bf525a07515106904509e8d3ae30ec23e1b",
+      "kernel/sched/debug.c": "c058634152d042925a7f98b939a862cf0897a6487d7a21a24a3daf3d4d3ad600",
+      "kernel/sched/fair.c": "1b314607e3b836d5787f13e3dcfc3d7b0c7400d75d73ce43cd84c286500c5d3c",
+      "kernel/sched/Makefile": "f15d429896cbe733378539fb2cf5e707ee004eb385cf2ef0cb77ceb7b967e354",
+      "kernel/sched/sched.h": "6c76dc4a978289d12c82ae284bf4aa2eca920d4bbc2fd93685174f5080d0b08d"
+    }
+  },
+  "v13": {
+    "description": "실행 중인 CPU에서 강제 밸런싱을 건너뛰는 조건",
+    "patch_sha256": "0f747744a94d647575e43c0b956e6ff20258980c0755abe0a53b2f6228e32fc7",
+    "snapshot_provenance": "Archived candidate bytes verified against the experiment source manifest. Patch regenerated against Linux 5.4.214.",
+    "files": {
+      "kernel/sched/affinity.c": "2610c476151a8f783edd33d278ed40ee409b2a3dc0af7ae70f408ca4464db599",
+      "kernel/sched/core.c": "e0c8dacf0aaf1f3731e03ca98cc51bf525a07515106904509e8d3ae30ec23e1b",
+      "kernel/sched/debug.c": "e6b11f35ce7c208b95066940f9e5bea205c28efa3b78fa6ca154e9337672943b",
+      "kernel/sched/fair.c": "1b314607e3b836d5787f13e3dcfc3d7b0c7400d75d73ce43cd84c286500c5d3c",
+      "kernel/sched/Makefile": "f15d429896cbe733378539fb2cf5e707ee004eb385cf2ef0cb77ceb7b967e354",
+      "kernel/sched/sched.h": "d64cae7492e75fda8a8f737008f398843e1fe75ab688bce54c915ef6d27e8621"
+    }
+  },
+  "v14": {
+    "description": "원격 이동 뒤 제한된 idle polling",
+    "patch_sha256": "a6f456d46c8e1ccaa01adc8522b699ba78a911387d39661510be2666dc791813",
+    "snapshot_provenance": "Archived candidate bytes verified against the experiment source manifest. Patch regenerated against Linux 5.4.214.",
+    "files": {
+      "kernel/sched/affinity.c": "ec5a4005f571cf2011f57f55cba6ba76c78798e9a08a2527fc1fd75b4be53f01",
+      "kernel/sched/core.c": "e0c8dacf0aaf1f3731e03ca98cc51bf525a07515106904509e8d3ae30ec23e1b",
+      "kernel/sched/debug.c": "23c9c03be58ae4488ed32e3eba2c5e43ed3e8f35d83fc68c9346abe4333465a7",
+      "kernel/sched/fair.c": "4d47712705d158ae1cbeb8072c3de4a5015fc1acaf843b6d75ba4445864af1c5",
+      "kernel/sched/Makefile": "f15d429896cbe733378539fb2cf5e707ee004eb385cf2ef0cb77ceb7b967e354",
+      "kernel/sched/sched.h": "5d4fcab187ce55f5dd37bfb4e66fca261626f09774d3d09ef9c15a528087e88d",
+      "kernel/sched/idle.c": "4c307db9d85f341f61ab111c63bbc41c869e1189e6c5a18da9fe72e0a70f93ff"
+    }
+  },
+  "v15": {
+    "description": "원격 등록 뒤 대상 CPU의 깨우기 IPI를 제한적으로 재전송",
+    "patch_sha256": "cf615b0197887c3fb562cb2136d9f816dfe86e84b0c0f0b3997f66a3f6172de9",
+    "snapshot_provenance": "Archived candidate bytes verified against the experiment source manifest. Patch regenerated against Linux 5.4.214.",
+    "files": {
+      "kernel/sched/affinity.c": "a28b811865c7777ec1b464c02ff98b80afb34f05064065639e5c1d43fe21ae84",
+      "kernel/sched/core.c": "e0c8dacf0aaf1f3731e03ca98cc51bf525a07515106904509e8d3ae30ec23e1b",
+      "kernel/sched/debug.c": "cd972d45a21e8d1dbd3a15f2afdbdc66e427d98f95bfa39c44ad68f14a14f4eb",
+      "kernel/sched/fair.c": "66824cc339f84692958a4549fa0b03d1bac7cf4a9c59d12dbd4f45c397ef9b54",
+      "kernel/sched/Makefile": "f15d429896cbe733378539fb2cf5e707ee004eb385cf2ef0cb77ceb7b967e354",
+      "kernel/sched/sched.h": "d996a29dfd520274d5a013c86befc5868285179e3585e2780ae35f75c3fcd7ac",
+      "kernel/sched/idle.c": "4c307db9d85f341f61ab111c63bbc41c869e1189e6c5a18da9fe72e0a70f93ff"
+    }
   }
 }
