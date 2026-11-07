@@ -169,5 +169,47 @@
       "kernel/sched/sched.h": "d996a29dfd520274d5a013c86befc5868285179e3585e2780ae35f75c3fcd7ac",
       "kernel/sched/idle.c": "4c307db9d85f341f61ab111c63bbc41c869e1189e6c5a18da9fe72e0a70f93ff"
     }
+  },
+  "v16": {
+    "description": "idle 상태인 로컬 CPU에서 먼저 적격 작업을 가져오는 경로",
+    "patch_sha256": "c5b6fcb0eb43868581580f37abfba93edec92098ca9da0299fc06bbc17553f83",
+    "snapshot_provenance": "Archived candidate source verified against its manifest. Patch generated against Linux 5.4.214.",
+    "files": {
+      "kernel/sched/affinity.c": "3936c23c98067fd24b9f86c4f4d7973547fe8b2e2af4a9fc1709e1c2bbddcdc7",
+      "kernel/sched/core.c": "e0c8dacf0aaf1f3731e03ca98cc51bf525a07515106904509e8d3ae30ec23e1b",
+      "kernel/sched/debug.c": "35997c50c77ec9ac78af3f4558dbd596ddddbcfbcd9ed27ef05e078e551aab85",
+      "kernel/sched/fair.c": "06add47896e1b6784baccc93b3a1bf0a01bb42965f84a9808847db8694f8e3c8",
+      "kernel/sched/Makefile": "f15d429896cbe733378539fb2cf5e707ee004eb385cf2ef0cb77ceb7b967e354",
+      "kernel/sched/sched.h": "18984291fcafa14f9834024e897184efd12df8bb6dc84681be9840087721aef2",
+      "kernel/sched/idle.c": "4c307db9d85f341f61ab111c63bbc41c869e1189e6c5a18da9fe72e0a70f93ff"
+    }
+  },
+  "v17": {
+    "description": "idle 경로에서 작업 배치를 한 번 더 확인하는 제어",
+    "patch_sha256": "11b77e17395743b82657e323dcf8f3d37612786a8a4d23275fd24b37eb9912b6",
+    "snapshot_provenance": "Archived candidate source verified against its manifest. Patch generated against Linux 5.4.214.",
+    "files": {
+      "kernel/sched/affinity.c": "626b25f3f3f70f08d4ce1b54279d3f3041dd1d24b5dea9b2285bb2a96c856030",
+      "kernel/sched/core.c": "e0c8dacf0aaf1f3731e03ca98cc51bf525a07515106904509e8d3ae30ec23e1b",
+      "kernel/sched/debug.c": "0a4663e51c2c164d54b300c0cdaa52ff84e7699a7834d9d9d8818822914cc4a5",
+      "kernel/sched/fair.c": "01e5372fca2aa5c71b502255dc48b40a81bbf99893b629ba47ba877512bd8223",
+      "kernel/sched/Makefile": "f15d429896cbe733378539fb2cf5e707ee004eb385cf2ef0cb77ceb7b967e354",
+      "kernel/sched/sched.h": "058f5f6727c1345d4d22de19705e8c34647750fb08522b6cb09cfbf31697ef06",
+      "kernel/sched/idle.c": "f0f6d926d373e036b4a083d8ff7736943e5e0ee55fa3a112d64cae5ec765d84e"
+    }
+  },
+  "v18": {
+    "description": "작은 시스템에서 활성 CPU에 이미 작업이 배치된 경우 추가 알림 축소",
+    "patch_sha256": "a4a5a3147a9ad7221afebefba1d7c95f432f3dfedb119ed1fbe6750897a22583",
+    "snapshot_provenance": "Archived candidate source verified against its manifest. Patch generated against Linux 5.4.214.",
+    "files": {
+      "kernel/sched/affinity.c": "2723af52ad13b17e4239eb44bac49550636781c002bac58de76b6b825240eb0a",
+      "kernel/sched/core.c": "e0c8dacf0aaf1f3731e03ca98cc51bf525a07515106904509e8d3ae30ec23e1b",
+      "kernel/sched/debug.c": "4351f6b9acc9844713a92e7d9d58fc8f392f9209506190b9e09171773bf08f28",
+      "kernel/sched/fair.c": "01e5372fca2aa5c71b502255dc48b40a81bbf99893b629ba47ba877512bd8223",
+      "kernel/sched/Makefile": "f15d429896cbe733378539fb2cf5e707ee004eb385cf2ef0cb77ceb7b967e354",
+      "kernel/sched/sched.h": "8a34a359a6b6b93655dcd4f8f954ec19249412b1d30b3d6cc6213093816817d0",
+      "kernel/sched/idle.c": "f0f6d926d373e036b4a083d8ff7736943e5e0ee55fa3a112d64cae5ec765d84e"
+    }
   }
 }

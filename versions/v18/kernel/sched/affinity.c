@@ -1,0 +1,621 @@
+// SPDX-License-Identifier: GPL-2.0
+/* Event-only recovery with a bounded retry on a still-idle destination. */
+#include "sched.h"
+#include <linux/hrtimer.h>
+#include <linux/interrupt.h>
+#include <linux/irq_work.h>
+#include <linux/mutex.h>
+#include <linux/sysctl.h>
+#include <linux/timekeeping.h>
+
+#ifdef CONFIG_IRQ_WORK
+#define AFFINITY_FANOUT_SCAN_LIMIT 8
+#define AFFINITY_RETRY_LIMIT 2
+#define AFFINITY_RETRY_DELAY_NS NSEC_PER_MSEC
+#define AFFINITY_RETRY_WINDOW_NS (5 * NSEC_PER_MSEC)
+#define AFFINITY_IDLE_POLL_NS NSEC_PER_MSEC
+#define AFFINITY_WAKE_CHECK_LIMIT 2
+#define AFFINITY_WAKE_DELAY_NS NSEC_PER_MSEC
+#define AFFINITY_WAKE_WINDOW_NS (5 * NSEC_PER_MSEC)
+
+static int affinity_balance_enabled;
+static int affinity_retry_enabled;
+static int affinity_pull_enabled;
+static int affinity_push_enabled;
+static int affinity_idle_force_enabled;
+static int affinity_idle_poll_enabled;
+static int affinity_wake_retry_enabled;
+static int affinity_local_first_enabled;
+static int affinity_idle_recheck_enabled;
+static int affinity_trim_fanout_enabled;
+DEFINE_STATIC_KEY_FALSE(sched_affinity_idle_recheck_key);
+DEFINE_STATIC_KEY_FALSE(sched_affinity_idle_poll_key);
+static DEFINE_PER_CPU(u64, affinity_poll_until);
+static DEFINE_PER_CPU(u64, affinity_poll_observed);
+
+#ifdef CONFIG_SYSCTL
+static DEFINE_MUTEX(affinity_control_mutex);
+
+static int affinity_poll_sysctl(struct ctl_table *table, int write,
+			       void __user *buffer, size_t *lenp, loff_t *ppos)
+{
+	bool was_enabled;
+	int ret;
+
+	mutex_lock(&affinity_control_mutex);
+	was_enabled = affinity_idle_poll_enabled;
+	ret = proc_dointvec_minmax(table, write, buffer, lenp, ppos);
+	if (!ret && write && was_enabled != !!affinity_idle_poll_enabled) {
+		if (affinity_idle_poll_enabled)
+			static_branch_enable(&sched_affinity_idle_poll_key);
+		else
+			static_branch_disable(&sched_affinity_idle_poll_key);
+	}
+	mutex_unlock(&affinity_control_mutex);
+	return ret;
+}
+
+static int affinity_idle_recheck_sysctl(struct ctl_table *table, int write,
+			       void __user *buffer, size_t *lenp, loff_t *ppos)
+{
+	bool was_enabled;
+	int ret;
+
+	mutex_lock(&affinity_control_mutex);
+	was_enabled = affinity_idle_recheck_enabled;
+	ret = proc_dointvec_minmax(table, write, buffer, lenp, ppos);
+	if (!ret && write && was_enabled != !!affinity_idle_recheck_enabled) {
+		if (affinity_idle_recheck_enabled)
+			static_branch_enable(&sched_affinity_idle_recheck_key);
+		else
+			static_branch_disable(&sched_affinity_idle_recheck_key);
+	}
+	mutex_unlock(&affinity_control_mutex);
+	return ret;
+}
+
+static struct ctl_table affinity_balance_sysctls[] = {
+	{
+		.procname	= "sched_affinity_rebalance",
+		.data		= &affinity_balance_enabled,
+		.maxlen		= sizeof(int),
+		.mode		= 0644,
+		.proc_handler	= proc_dointvec_minmax,
+		.extra1		= SYSCTL_ZERO,
+		.extra2		= SYSCTL_ONE,
+	},
+	{
+		.procname	= "sched_affinity_retry",
+		.data		= &affinity_retry_enabled,
+		.maxlen		= sizeof(int),
+		.mode		= 0644,
+		.proc_handler	= proc_dointvec_minmax,
+		.extra1		= SYSCTL_ZERO,
+		.extra2		= SYSCTL_ONE,
+	},
+	{
+		.procname	= "sched_affinity_pull",
+		.data		= &affinity_pull_enabled,
+		.maxlen		= sizeof(int),
+		.mode		= 0644,
+		.proc_handler	= proc_dointvec_minmax,
+		.extra1		= SYSCTL_ZERO,
+		.extra2		= SYSCTL_ONE,
+	},
+	{
+		.procname	= "sched_affinity_push",
+		.data		= &affinity_push_enabled,
+		.maxlen		= sizeof(int),
+		.mode		= 0644,
+		.proc_handler	= proc_dointvec_minmax,
+		.extra1		= SYSCTL_ZERO,
+		.extra2		= SYSCTL_ONE,
+	},
+	{
+		.procname	= "sched_affinity_idle_force",
+		.data		= &affinity_idle_force_enabled,
+		.maxlen		= sizeof(int),
+		.mode		= 0644,
+		.proc_handler	= proc_dointvec_minmax,
+		.extra1		= SYSCTL_ZERO,
+		.extra2		= SYSCTL_ONE,
+	},
+	{
+		.procname	= "sched_affinity_idle_poll",
+		.data		= &affinity_idle_poll_enabled,
+		.maxlen		= sizeof(int),
+		.mode		= 0644,
+		.proc_handler	= affinity_poll_sysctl,
+		.extra1		= SYSCTL_ZERO,
+		.extra2		= SYSCTL_ONE,
+	},
+	{
+		.procname	= "sched_affinity_wake_retry",
+		.data		= &affinity_wake_retry_enabled,
+		.maxlen		= sizeof(int),
+		.mode		= 0644,
+		.proc_handler	= proc_dointvec_minmax,
+		.extra1		= SYSCTL_ZERO,
+		.extra2		= SYSCTL_ONE,
+	},
+	{
+		.procname	= "sched_affinity_local_first",
+		.data		= &affinity_local_first_enabled,
+		.maxlen		= sizeof(int),
+		.mode		= 0644,
+		.proc_handler	= proc_dointvec_minmax,
+		.extra1		= SYSCTL_ZERO,
+		.extra2		= SYSCTL_ONE,
+	},
+	{
+		.procname	= "sched_affinity_idle_recheck",
+		.data		= &affinity_idle_recheck_enabled,
+		.maxlen		= sizeof(int),
+		.mode		= 0644,
+		.proc_handler	= affinity_idle_recheck_sysctl,
+		.extra1		= SYSCTL_ZERO,
+		.extra2		= SYSCTL_ONE,
+	},
+	{
+		.procname	= "sched_affinity_trim_fanout",
+		.data		= &affinity_trim_fanout_enabled,
+		.maxlen		= sizeof(int),
+		.mode		= 0644,
+		.proc_handler	= proc_dointvec_minmax,
+		.extra1		= SYSCTL_ZERO,
+		.extra2		= SYSCTL_ONE,
+	},
+	{ }
+};
+
+#endif
+
+struct affinity_balance_work {
+	struct irq_work work;
+	struct tasklet_struct tasklet;
+	struct hrtimer retry;
+	u64 retry_deadline;
+	u64 idle_recheck_until;
+	unsigned int retries_left;
+	bool notified;
+	bool retry_pending;
+	int cpu;
+};
+
+static DEFINE_PER_CPU_SHARED_ALIGNED(struct affinity_balance_work,
+				    affinity_balance_work);
+DEFINE_PER_CPU(unsigned long, sched_affinity_hints);
+DEFINE_PER_CPU(unsigned long, sched_affinity_queues);
+DEFINE_PER_CPU(unsigned long, sched_affinity_works);
+DEFINE_PER_CPU(unsigned long, sched_affinity_resets);
+DEFINE_PER_CPU(unsigned long, sched_affinity_retry_arms);
+DEFINE_PER_CPU(unsigned long, sched_affinity_retry_fires);
+DEFINE_PER_CPU(unsigned long, sched_affinity_retry_runs);
+DEFINE_PER_CPU(unsigned long, sched_affinity_retry_skips);
+DEFINE_PER_CPU(unsigned long, sched_affinity_pull_attempts);
+DEFINE_PER_CPU(unsigned long, sched_affinity_pull_moved);
+DEFINE_PER_CPU(unsigned long, sched_affinity_push_attempts);
+DEFINE_PER_CPU(unsigned long, sched_affinity_push_moved);
+DEFINE_PER_CPU(unsigned long, sched_affinity_force_skips);
+DEFINE_PER_CPU(unsigned long, sched_affinity_poll_arms);
+DEFINE_PER_CPU(unsigned long, sched_affinity_poll_entries);
+
+DEFINE_PER_CPU(unsigned long, sched_affinity_wake_arms);
+DEFINE_PER_CPU(unsigned long, sched_affinity_wake_fires);
+DEFINE_PER_CPU(unsigned long, sched_affinity_wake_checks);
+DEFINE_PER_CPU(unsigned long, sched_affinity_wake_ipis);
+DEFINE_PER_CPU(unsigned long, sched_affinity_wake_done);
+DEFINE_PER_CPU(unsigned long, sched_affinity_local_first_attempts);
+DEFINE_PER_CPU(unsigned long, sched_affinity_local_first_moved);
+DEFINE_PER_CPU(unsigned long, sched_affinity_idle_recheck_arms);
+DEFINE_PER_CPU(unsigned long, sched_affinity_idle_recheck_attempts);
+DEFINE_PER_CPU(unsigned long, sched_affinity_idle_recheck_moved);
+DEFINE_PER_CPU(unsigned long, sched_affinity_fanout_skipped);
+
+struct affinity_wake_watch {
+	struct hrtimer timer;
+	cpumask_t targets;
+	u64 deadline;
+	unsigned int checks_left;
+	int cpu;
+};
+
+static DEFINE_PER_CPU(struct affinity_wake_watch, affinity_wake_watch);
+
+static enum hrtimer_restart affinity_wake_retry(struct hrtimer *timer)
+{
+	struct affinity_wake_watch *state;
+	int cpu;
+
+	state = container_of(timer, struct affinity_wake_watch, timer);
+	if (!READ_ONCE(affinity_balance_enabled) ||
+	    !READ_ONCE(affinity_wake_retry_enabled) ||
+	    state->cpu != smp_processor_id() || !cpu_active(state->cpu) ||
+	    !state->checks_left ||
+	    ktime_get_ns() >= state->deadline)
+		return HRTIMER_NORESTART;
+	state->checks_left--;
+	this_cpu_inc(sched_affinity_wake_fires);
+	for_each_cpu(cpu, &state->targets) {
+		struct rq *rq = cpu_rq(cpu);
+
+		if (!cpu_active(cpu)) {
+			cpumask_clear_cpu(cpu, &state->targets);
+			continue;
+		}
+		/* Inspect one remote rq at a time. */
+		raw_spin_lock(&rq->lock);
+		this_cpu_inc(sched_affinity_wake_checks);
+		if (cpu_active(cpu) && rq->curr == rq->idle &&
+		    rq->cfs.h_nr_running) {
+			/* idle_cpu() is false once runnable work is queued. */
+			if (test_tsk_need_resched(rq->curr)) {
+				smp_send_reschedule(cpu);
+				this_cpu_inc(sched_affinity_wake_ipis);
+			} else {
+				resched_curr(rq);
+			}
+		} else {
+			cpumask_clear_cpu(cpu, &state->targets);
+			this_cpu_inc(sched_affinity_wake_done);
+		}
+		raw_spin_unlock(&rq->lock);
+	}
+	if (state->checks_left && !cpumask_empty(&state->targets) &&
+	    ktime_get_ns() + AFFINITY_WAKE_DELAY_NS < state->deadline) {
+		hrtimer_forward_now(timer, ns_to_ktime(AFFINITY_WAKE_DELAY_NS));
+		return HRTIMER_RESTART;
+	}
+	return HRTIMER_NORESTART;
+}
+
+/* Called after a real remote attachment, with all rq locks released. */
+void __cold sched_affinity_wake_watch(int dst)
+{
+	struct affinity_wake_watch *state;
+	unsigned long flags;
+	u64 now;
+	int cpu = smp_processor_id();
+
+	if (!READ_ONCE(affinity_balance_enabled) ||
+	    !READ_ONCE(affinity_wake_retry_enabled) || dst == cpu ||
+	    !cpu_active(dst))
+		return;
+	state = this_cpu_ptr(&affinity_wake_watch);
+	local_irq_save(flags);
+	now = ktime_get_ns();
+	if (now >= state->deadline) {
+		cpumask_clear(&state->targets);
+		state->deadline = now + AFFINITY_WAKE_WINDOW_NS;
+		state->checks_left = AFFINITY_WAKE_CHECK_LIMIT;
+		cpumask_set_cpu(dst, &state->targets);
+		hrtimer_start(&state->timer,
+			      ns_to_ktime(AFFINITY_WAKE_DELAY_NS),
+			      HRTIMER_MODE_REL_PINNED);
+		this_cpu_inc(sched_affinity_wake_arms);
+	} else if (state->checks_left) {
+		/* Coalesce new targets without extending deadline or budget. */
+		cpumask_set_cpu(dst, &state->targets);
+	}
+	local_irq_restore(flags);
+}
+
+/* An active lease is never extended by another push. */
+void __cold sched_affinity_idle_poll_arm_active(void)
+{
+	unsigned long flags;
+	u64 now, until;
+
+	if (!READ_ONCE(affinity_idle_poll_enabled))
+		return;
+	local_irq_save(flags);
+	now = ktime_get_ns();
+	until = this_cpu_read(affinity_poll_until);
+	if (now >= until) {
+		this_cpu_write(affinity_poll_until,
+			       now + AFFINITY_IDLE_POLL_NS);
+		this_cpu_inc(sched_affinity_poll_arms);
+	}
+	local_irq_restore(flags);
+}
+
+/* Called only by this CPU's idle loop, including its RCU-idle section. */
+bool __cpuidle notrace sched_affinity_idle_poll_active(void)
+{
+	unsigned long flags;
+	u64 until;
+	bool active = false;
+
+	if (!READ_ONCE(affinity_idle_poll_enabled) ||
+	    !this_cpu_read(affinity_poll_until))
+		return false;
+	/* The local tasklet can arm a lease while polling has IRQs enabled. */
+	local_irq_save(flags);
+	until = this_cpu_read(affinity_poll_until);
+	if (until && ktime_get_ns() < until) {
+		active = true;
+		if (this_cpu_read(affinity_poll_observed) != until) {
+			this_cpu_write(affinity_poll_observed, until);
+			this_cpu_inc(sched_affinity_poll_entries);
+		}
+	} else {
+		this_cpu_write(affinity_poll_until, 0);
+	}
+	local_irq_restore(flags);
+	return active;
+}
+
+
+static enum hrtimer_restart affinity_balance_retry(struct hrtimer *timer)
+{
+	struct affinity_balance_work *state;
+	int cpu = smp_processor_id();
+
+	state = container_of(timer, struct affinity_balance_work, retry);
+	if (!READ_ONCE(affinity_balance_enabled) ||
+	    !READ_ONCE(affinity_retry_enabled) || state->cpu != cpu ||
+	    !cpu_active(cpu))
+		return HRTIMER_NORESTART;
+	if (!state->retries_left || ktime_get_ns() >= state->retry_deadline ||
+	    !idle_cpu(cpu)) {
+		state->retries_left = 0;
+		this_cpu_inc(sched_affinity_retry_skips);
+		return HRTIMER_NORESTART;
+	}
+	state->retry_pending = true;
+	this_cpu_inc(sched_affinity_retry_fires);
+	/* Keep load_balance() in tasklet context, never in the timer IRQ. */
+	tasklet_schedule(&state->tasklet);
+	return HRTIMER_NORESTART;
+}
+
+static void affinity_balance_arm_retry(struct affinity_balance_work *state)
+{
+	unsigned long flags;
+	int cpu = smp_processor_id();
+
+	if (!READ_ONCE(affinity_retry_enabled))
+		return;
+	/* IRQ work and timer callbacks update this CPU's retry state. */
+	local_irq_save(flags);
+	if (!READ_ONCE(affinity_balance_enabled) || !cpu_active(cpu) ||
+	    state->cpu != cpu || !idle_cpu(cpu) || !state->retries_left ||
+	    ktime_get_ns() >= state->retry_deadline) {
+		state->retries_left = 0;
+		goto out;
+	}
+	if (!hrtimer_active(&state->retry)) {
+		hrtimer_start(&state->retry,
+			      ns_to_ktime(AFFINITY_RETRY_DELAY_NS),
+			      HRTIMER_MODE_REL_PINNED);
+		this_cpu_inc(sched_affinity_retry_arms);
+	}
+out:
+	local_irq_restore(flags);
+}
+
+static void affinity_balance_tasklet(unsigned long data)
+{
+	struct affinity_balance_work *state = (void *)data;
+	unsigned long flags;
+	int cpu = smp_processor_id();
+	bool notified, retry, tried_local;
+	bool pulled = false;
+
+	if (!READ_ONCE(affinity_balance_enabled))
+		return;
+	if (unlikely(state->cpu != cpu || !cpu_active(cpu)))
+		return;
+	local_irq_save(flags);
+	notified = state->notified;
+	retry = state->retry_pending;
+	state->notified = false;
+	state->retry_pending = false;
+	if (!notified) {
+		if (!retry || !READ_ONCE(affinity_retry_enabled) ||
+		    !state->retries_left || !idle_cpu(cpu) ||
+		    ktime_get_ns() >= state->retry_deadline) {
+			state->retries_left = 0;
+			if (retry)
+				this_cpu_inc(sched_affinity_retry_skips);
+			local_irq_restore(flags);
+			return;
+		}
+		state->retries_left--;
+		this_cpu_inc(sched_affinity_retry_runs);
+	}
+	local_irq_restore(flags);
+	/*
+	 * A running idle CPU can start the first eligible task itself.
+	 * Let it take one task before spending this callback on a remote CPU.
+	 */
+	tried_local = READ_ONCE(affinity_local_first_enabled) &&
+		      READ_ONCE(affinity_pull_enabled) && idle_cpu(cpu);
+	if (tried_local) {
+		this_cpu_inc(sched_affinity_local_first_attempts);
+		pulled = sched_affinity_pull_idle(false);
+		if (pulled)
+			this_cpu_inc(sched_affinity_local_first_moved);
+	}
+	if (!pulled && READ_ONCE(affinity_push_enabled))
+		sched_affinity_push_idle();
+	/* A queued task or active caller already makes this CPU busy. */
+	if (!READ_ONCE(affinity_idle_force_enabled) || idle_cpu(cpu))
+		sched_affinity_force_balance();
+	else
+		this_cpu_inc(sched_affinity_force_skips);
+	if (!tried_local && READ_ONCE(affinity_pull_enabled))
+		sched_affinity_pull_idle(false);
+	affinity_balance_arm_retry(state);
+}
+
+static void affinity_balance_irq(struct irq_work *work)
+{
+	struct affinity_balance_work *state;
+	unsigned long flags;
+	int cpu = smp_processor_id();
+
+	state = container_of(work, struct affinity_balance_work, work);
+	this_cpu_inc(sched_affinity_works);
+	if (unlikely(state->cpu != cpu || !cpu_active(cpu)))
+		return;
+	local_irq_save(flags);
+	state->notified = true;
+	if (READ_ONCE(affinity_balance_enabled) &&
+	    READ_ONCE(affinity_retry_enabled)) {
+		state->retries_left = AFFINITY_RETRY_LIMIT;
+		state->retry_deadline = ktime_get_ns() +
+					AFFINITY_RETRY_WINDOW_NS;
+	} else {
+		state->retries_left = 0;
+	}
+	local_irq_restore(flags);
+	tasklet_schedule(&state->tasklet);
+}
+
+/*
+ * Restrict the shortcut to small systems and full active-CPU masks.
+ * Pending work on an idle CPU counts as assigned, but that CPU still
+ * gets its notification below.
+ */
+static bool affinity_queues_assigned(const struct cpumask *allowed)
+{
+	unsigned int scanned = 0;
+	int cpu;
+
+	for_each_cpu(cpu, cpu_active_mask) {
+		if (++scanned > AFFINITY_FANOUT_SCAN_LIMIT ||
+		    !cpumask_test_cpu(cpu, allowed) ||
+		    !READ_ONCE(cpu_rq(cpu)->nr_running))
+			return false;
+	}
+	return true;
+}
+
+void sched_affinity_rebalance(struct rq *source,
+			      const struct cpumask *allowed)
+{
+	struct rq *caller = this_rq();
+	int cpu, src = cpu_of(source), here = cpu_of(caller);
+	bool trim;
+
+	lockdep_assert_held(&source->lock);
+	if (!READ_ONCE(affinity_balance_enabled))
+		return;
+	this_cpu_inc(sched_affinity_hints);
+	rcu_read_lock();
+	/* Keep the caller's original notification and idle recheck. */
+	trim = READ_ONCE(affinity_trim_fanout_enabled) &&
+	       READ_ONCE(affinity_idle_recheck_enabled) &&
+	       READ_ONCE(affinity_local_first_enabled) &&
+	       READ_ONCE(affinity_pull_enabled) && src != here &&
+	       cpu_active(here) && rcu_dereference_sched(caller->sd) &&
+	       cpumask_test_cpu(src, caller->rd->span) &&
+	       affinity_queues_assigned(allowed);
+	for_each_cpu_and(cpu, allowed, cpu_active_mask) {
+		struct rq *target = cpu_rq(cpu);
+		struct affinity_balance_work *state;
+
+		if (cpu == cpu_of(source) ||
+		    !rcu_dereference_sched(target->sd) ||
+		    !cpumask_test_cpu(cpu_of(source), target->rd->span))
+			continue;
+		if (trim && cpu != here &&
+		    READ_ONCE(target->curr) != target->idle &&
+		    READ_ONCE(target->nr_running)) {
+			this_cpu_inc(sched_affinity_fanout_skipped);
+			continue;
+		}
+		state = &per_cpu(affinity_balance_work, cpu);
+		/*
+		 * The caller can still be busy when its own IRQ work runs.
+		 * Let it use this hint once if it enters idle shortly after.
+		 */
+		if (static_branch_unlikely(&sched_affinity_idle_recheck_key) &&
+		    cpu == smp_processor_id() &&
+		    READ_ONCE(affinity_local_first_enabled) &&
+		    READ_ONCE(affinity_pull_enabled)) {
+			state->idle_recheck_until = ktime_get_ns() +
+						   AFFINITY_RETRY_WINDOW_NS;
+			this_cpu_inc(sched_affinity_idle_recheck_arms);
+		}
+		if (irq_work_queue_on(&state->work, cpu))
+			this_cpu_inc(sched_affinity_queues);
+	}
+	rcu_read_unlock();
+}
+
+void __cold sched_affinity_idle_recheck_active(void)
+{
+	struct affinity_balance_work *state;
+	unsigned long flags;
+	u64 until;
+
+	/* play_idle() can also reach do_idle() from a non-idle task. */
+	if (current != this_rq()->idle)
+		return;
+
+	local_irq_save(flags);
+	state = this_cpu_ptr(&affinity_balance_work);
+	until = state->idle_recheck_until;
+	state->idle_recheck_until = 0;
+	local_irq_restore(flags);
+
+	if (!until || !READ_ONCE(affinity_idle_recheck_enabled) ||
+	    !READ_ONCE(affinity_balance_enabled) ||
+	    !READ_ONCE(affinity_local_first_enabled) ||
+	    !READ_ONCE(affinity_pull_enabled) || need_resched() ||
+	    ktime_get_ns() >= until)
+		return;
+
+	this_cpu_inc(sched_affinity_idle_recheck_attempts);
+	if (sched_affinity_pull_idle(true))
+		this_cpu_inc(sched_affinity_idle_recheck_moved);
+}
+
+void __init sched_affinity_init(void)
+{
+	int cpu;
+
+	for_each_possible_cpu(cpu) {
+		struct affinity_balance_work *state;
+
+		state = &per_cpu(affinity_balance_work, cpu);
+		state->cpu = cpu;
+		init_irq_work(&state->work, affinity_balance_irq);
+		tasklet_init(&state->tasklet, affinity_balance_tasklet,
+			     (unsigned long)state);
+	}
+}
+
+static int __init sched_affinity_controls_init(void)
+{
+	int cpu;
+
+	/* sched_init() runs before the timer subsystem is initialized. */
+	for_each_possible_cpu(cpu) {
+		struct affinity_balance_work *state;
+
+		state = &per_cpu(affinity_balance_work, cpu);
+		hrtimer_init(&state->retry, CLOCK_MONOTONIC, HRTIMER_MODE_REL);
+		state->retry.function = affinity_balance_retry;
+		{
+			struct affinity_wake_watch *watch;
+
+			watch = &per_cpu(affinity_wake_watch, cpu);
+			watch->cpu = cpu;
+			hrtimer_init(&watch->timer, CLOCK_MONOTONIC,
+				     HRTIMER_MODE_REL);
+			watch->timer.function = affinity_wake_retry;
+		}
+	}
+#ifdef CONFIG_SYSCTL
+	/* Publish the controls only after every retry timer is initialized. */
+	return register_sysctl("kernel", affinity_balance_sysctls) ?
+		0 : -ENOMEM;
+#else
+	return 0;
+#endif
+}
+late_initcall(sched_affinity_controls_init);
+#endif

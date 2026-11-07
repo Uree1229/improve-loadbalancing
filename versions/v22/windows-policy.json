@@ -1,0 +1,11 @@
+{
+  "guest_kernel": "v18",
+  "guest_trim_fanout": true,
+  "processor_overrides_for_ac_and_dc": {
+    "CPMINCORES": 100,
+    "CPMINCORES1": 100,
+    "SCHEDPOLICY": 2,
+    "PERFEPP": 0,
+    "PERFEPP1": 0
+  }
+}

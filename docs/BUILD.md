@@ -4,13 +4,15 @@
 
 ```bash
 # 깨끗한 Linux 5.4.214 전체 소스 디렉터리에서 실행
-git apply --check /path/to/improve-loadbalancing/versions/v15/changes.patch
-git apply /path/to/improve-loadbalancing/versions/v15/changes.patch
+git apply --check /path/to/improve-loadbalancing/versions/v18/changes.patch
+git apply /path/to/improve-loadbalancing/versions/v18/changes.patch
 make olddefconfig
 make -j2
 ```
 
 각 버전은 같은 기준에서 출발한다. v1 패치를 적용한 뒤 v2를 더하는 식으로 누적하지 않는다. 버전마다 별도 깨끗한 트리를 사용한다. 설치 및 부팅 설정은 대상 시스템에서 따로 결정한다.
+
+v19~v22는 [v18 게스트](../versions/v18/)에서 Windows 전원 설정을 비교한 실험이다. 각 버전의 `windows-policy.json`에 임시 전원 정책에 적용한 변경값을 기록했다.
 
 ## 비교용 C
 
