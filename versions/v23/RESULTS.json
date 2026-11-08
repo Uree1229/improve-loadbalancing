@@ -1,0 +1,72 @@
+{
+  "experiment_type": "Windows policy comparison on unchanged v18 kernel",
+  "first_boot": {
+    "formal_trials": 108,
+    "recovery_200_median_ms": {
+      "v18": 2.244096,
+      "v19": 2.404436,
+      "v23": 1.558403
+    },
+    "recovery_200_v23_vs_v18_pct": -30.555421871435083,
+    "recovery_835_maximum_ms": {
+      "v18": 5.361306,
+      "v19": 4.100446,
+      "v23": 2.102506
+    },
+    "recovery_835_v23_maximum_minus_v19_ms": -1.9979399999999998,
+    "pinned_256_host_cpu_median_s": {
+      "v18": 10.0234375,
+      "v19": 9.734375,
+      "v23": 9.7265625
+    },
+    "pinned_256_paired_cpu_change_pct": -4.436916466991658,
+    "user_targets": {
+      "recovery-200/median-below-v18": true,
+      "recovery-835/max-within-v19-plus-1ms": true,
+      "pinned-256/host-cpu-within-v18-plus-5pct": true
+    },
+    "user_targets_pass": true,
+    "additional_checks_passed": 19,
+    "additional_checks_total": 19
+  },
+  "reboot_reproduction": {
+    "formal_trials": 108,
+    "recovery_200_median_ms": {
+      "v18": 2.6680384999999998,
+      "v19": 2.3188325,
+      "v23": 1.7104675
+    },
+    "recovery_200_v23_vs_v18_pct": -35.89044910708746,
+    "recovery_835_maximum_ms": {
+      "v18": 11.407892,
+      "v19": 3.1748939999999997,
+      "v23": 2.3282059999999998
+    },
+    "recovery_835_v23_maximum_minus_v19_ms": -0.8466879999999999,
+    "pinned_256_host_cpu_median_s": {
+      "v18": 14.2734375,
+      "v19": 14.5078125,
+      "v23": 10.0234375
+    },
+    "pinned_256_paired_cpu_change_pct": -23.36990595611286,
+    "user_targets": {
+      "recovery-200/median-below-v18": true,
+      "recovery-835/max-within-v19-plus-1ms": true,
+      "pinned-256/host-cpu-within-v18-plus-5pct": true
+    },
+    "user_targets_pass": true,
+    "additional_checks_passed": 19,
+    "additional_checks_total": 19
+  },
+  "full_trials": 216,
+  "targets_reproduced": true,
+  "interrupted_reproduction": {
+    "completed": 29,
+    "planned": 108,
+    "status": "incomplete, retained separately",
+    "reason": "ConnectionResetError at the host end marker",
+    "pooled_with_complete_runs": false
+  },
+  "cpu_metric": "Median of within-pair Windows VirtualBox process CPU-time ratios",
+  "scope": "Two complete boots on one host; each boot judged against its own interleaved controls"
+}

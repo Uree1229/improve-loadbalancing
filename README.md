@@ -1,6 +1,6 @@
 # Linux CPU Load Balancing Experiments
 
-Linux **5.4.214** 기반 CPU 로드밸런싱 개선 후보 **v1~v18**의 커널 소스와 패치, **v19~v22**의 호스트 설정를 보관한다. CPU affinity 제한이 풀렸을 때 분산 복구를 앞당기는 접근과 task hotness 판단 변경을 다룬다.
+Linux **5.4.214** 기반 CPU 로드밸런싱 개선 후보 **v1~v18**의 커널 소스와 패치, **v19~v24**의 호스트 설정을 보관한다. CPU affinity 제한이 풀렸을 때 분산 복구를 앞당기는 접근과 task hotness 판단 변경을 다룬다.
 
 ## 버전별 코드
 
@@ -28,9 +28,14 @@ Linux **5.4.214** 기반 CPU 로드밸런싱 개선 후보 **v1~v18**의 커널 
 | [v20](versions/v20/) | v18 게스트에서 Windows 코어 등급별 파킹 하한 조정 |
 | [v21](versions/v21/) | v19 설정에 장기 실행 스레드의 P코어 선호 추가 |
 | [v22](versions/v22/) | v21 설정에 두 코어 등급의 성능 우선 EPP 추가 |
+| [v23](versions/v23/) | 코어 파킹 하한 100%, SCHEDPOLICY 1과 두 등급 EPP 0 비교 |
+| [v24](versions/v24/) | v23에 두 코어 등급의 최소 성능 하한 100% 추가 |
 
-v19~v22는 v18 게스트 커널을 사용한다. 각 커널 `changes.patch`는 같은 원본 기준에 독립 적용한다. 다른 버전 패치와 누적하지 않는다. `kernel/sched/` 폴더에는 해당 버전의 변경 파일을 보관하며 전체 커널은 포함하지 않는다.
+v19~v24는 v18 게스트 커널을 사용한다. 각 커널 `changes.patch`는 같은 원본 기준에 독립 적용한다. 다른 버전 패치와 누적하지 않는다. `kernel/sched/` 폴더에는 해당 버전의 변경 파일을 보관하며 전체 커널은 포함하지 않는다.
 
+- [Windows 고정 조건의 원본 및 수정 커널 180회 비교](experiments/fixed-host-kernel-ab-20261108/)
+- [v23 비교와 재현 결과](versions/v23/RESULTS.md)
+- [v24 추가 개선 비교](versions/v24/RESULTS.md)
 - [v22 첫 부팅과 재현 결과](versions/v22/RESULTS.md)
 - [코드 변경 설명](docs/VERSIONS.md)
 - [빌드와 소스 확인](docs/BUILD.md)

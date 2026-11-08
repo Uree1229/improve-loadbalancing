@@ -1,0 +1,68 @@
+{
+  "scope": "One fresh guest boot on the same host; Windows minimum-performance-floor candidate on unchanged v18 kernel and C workload",
+  "formal_trials": 144,
+  "user_targets": {
+    "recovery-200/median-below-v18": true,
+    "recovery-835/max-within-v19-plus-1ms": true,
+    "pinned-256/host-cpu-within-v18-plus-5pct": true
+  },
+  "user_targets_pass": true,
+  "inherited_checks_passed": 19,
+  "inherited_checks_total": 19,
+  "improvement_over_v23_pass": false,
+  "incremental_retention_checks": {
+    "recovery-200/host-cpu-vs-v23": true,
+    "recovery-200/median-vs-v23": true,
+    "recovery-200/max-vs-v23": true,
+    "recovery-800/host-cpu-vs-v23": true,
+    "recovery-800/median-vs-v23": false,
+    "recovery-800/max-vs-v23": true,
+    "bursty-64/host-cpu-vs-v23": true,
+    "bursty-64/wall-vs-v23": true,
+    "bursty-256/host-cpu-vs-v23": true,
+    "bursty-256/wall-vs-v23": true,
+    "bursty-1024/host-cpu-vs-v23": true,
+    "bursty-1024/wall-vs-v23": true,
+    "steady-256/host-cpu-vs-v23": true,
+    "steady-256/wall-vs-v23": true,
+    "pinned-256/host-cpu-vs-v23": true,
+    "pinned-256/wall-vs-v23": true
+  },
+  "incremental_improvements": {
+    "recovery-200/median-reduction-at-least-0.1ms": false,
+    "recovery-800/maximum-reduction-at-least-0.25ms": false,
+    "pinned-256/cpu-reduction-at-least-2pct": false
+  },
+  "candidate_recommended_for_reproduction": false,
+  "recovery_200_median_ms": {
+    "v18": 2.6907525,
+    "v19": 2.293976,
+    "v23": 1.9150719999999999,
+    "v24": 1.980027
+  },
+  "recovery_835_median_ms": {
+    "v18": 4.703134,
+    "v19": 2.0325145000000004,
+    "v23": 1.478305,
+    "v24": 1.8192485
+  },
+  "recovery_835_maximum_ms": {
+    "v18": 12.509708,
+    "v19": 2.829771,
+    "v23": 2.308056,
+    "v24": 2.2632969999999997
+  },
+  "pinned_256_host_cpu_median_s": {
+    "v18": 13.4921875,
+    "v19": 13.4921875,
+    "v23": 9.875,
+    "v24": 9.8359375
+  },
+  "pinned_256_paired_host_cpu_ratio_v24_vs": {
+    "v18": 0.7291668343569147,
+    "v19": 0.7252091281275319,
+    "v23": 0.9960530565340504
+  },
+  "frequency_or_energy_measured": false,
+  "cross_boot_reproduction_done": false
+}

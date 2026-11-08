@@ -1,0 +1,1907 @@
+{
+  "date": "2026-11-08",
+  "experiment": "Actual original versus modified kernel with a single fixed Windows policy",
+  "images": {
+    "original": {
+      "release": "5.4.214-lb-base",
+      "vmlinuz_sha256": "f4317718ce6bfb557cb8db6334d2360ea104296ac93274048c3a7e6cc2e74fbb",
+      "config_sha256": "fa71fc0661ab57022e97353441810130fc0fc55dc2c6a3c556505fb6b083bef2"
+    },
+    "modified": {
+      "release": "5.4.214-lb-v18",
+      "vmlinuz_sha256": "bfc52daaf40065311c7221e3751e6447b440ada22666f0edd77eca24de701760",
+      "config_sha256": "1d968d788cb2a44b4e48ce1ae2f7522ce9786f33c8aeda3c6457b2ed21451d30"
+    }
+  },
+  "compiler": "gcc version 9.4.0 (Ubuntu 9.4.0-1ubuntu1~20.04.2)",
+  "configuration_difference": "CONFIG_LOCALVERSION only",
+  "vm_vcpus": 4,
+  "workers": 8,
+  "total_steps": 2086169180,
+  "phases": [
+    {
+      "phase": "a1",
+      "role": "original"
+    },
+    {
+      "phase": "b1",
+      "role": "modified"
+    },
+    {
+      "phase": "a2",
+      "role": "original"
+    },
+    {
+      "phase": "b2",
+      "role": "modified"
+    },
+    {
+      "phase": "a3",
+      "role": "original"
+    }
+  ],
+  "formal_trials": 180,
+  "minimum_start_uptime_s": 60,
+  "settle_s": 1,
+  "reference_runs_per_boot": 3,
+  "warmup_runs_per_boot": 4,
+  "fixed_host_policy": {
+    "processor_overrides_for_ac_and_dc": {
+      "CPMINCORES": 100,
+      "CPMINCORES1": 100,
+      "SCHEDPOLICY": 1,
+      "PERFEPP": 0,
+      "PERFEPP1": 0
+    }
+  },
+  "original_windows_settings_preserved": true,
+  "host_priorities": "Normal",
+  "host_affinity": "Original process and EMT affinity retained throughout",
+  "power_source": "AC, energy saver off",
+  "conditions_per_boot": {
+    "recovery-200": 8,
+    "recovery-800": 8,
+    "bursty-64": 4,
+    "bursty-256": 4,
+    "bursty-1024": 4,
+    "steady-256": 4,
+    "pinned-256": 4
+  },
+  "baseline_controls": "Experimental controls and counters must be absent",
+  "workload_sha256": {
+    "src/lb_bench.c": "8d5d19d440680482d5d077e81f61a24b770524d0212ebafe65c272fecfb2c846",
+    "src/lb_affinity_probe.c": "17bd5fb25cf209de49185f034c2aa62db350b814d2c810492ff2533555d937e5",
+    "lb_bench": "0d1c5169c8b6e1b40b686a39884f5b518f7b59c21ae7f006d684d487deda48d6",
+    "lb_affinity_probe": "2796e326f6b92505454fdf2b6749c95eb5d6b02012a32e16c301864de01d66c3"
+  },
+  "plan": [
+    {
+      "pair": 8,
+      "condition": "recovery-200",
+      "hold_ms": 136,
+      "buffer_kib": 256,
+      "mode": "probe",
+      "phase": "a1",
+      "role": "original",
+      "id": "kab-a1-p08-recovery-200"
+    },
+    {
+      "pair": 4,
+      "condition": "bursty-256",
+      "hold_ms": 0,
+      "buffer_kib": 256,
+      "mode": "bursty",
+      "phase": "a1",
+      "role": "original",
+      "id": "kab-a1-p04-bursty-256"
+    },
+    {
+      "pair": 1,
+      "condition": "recovery-800",
+      "hold_ms": 835,
+      "buffer_kib": 256,
+      "mode": "probe",
+      "phase": "a1",
+      "role": "original",
+      "id": "kab-a1-p01-recovery-800"
+    },
+    {
+      "pair": 3,
+      "condition": "pinned-256",
+      "hold_ms": 0,
+      "buffer_kib": 256,
+      "mode": "steady",
+      "phase": "a1",
+      "role": "original",
+      "id": "kab-a1-p03-pinned-256"
+    },
+    {
+      "pair": 2,
+      "condition": "bursty-1024",
+      "hold_ms": 0,
+      "buffer_kib": 1024,
+      "mode": "bursty",
+      "phase": "a1",
+      "role": "original",
+      "id": "kab-a1-p02-bursty-1024"
+    },
+    {
+      "pair": 1,
+      "condition": "bursty-1024",
+      "hold_ms": 0,
+      "buffer_kib": 1024,
+      "mode": "bursty",
+      "phase": "a1",
+      "role": "original",
+      "id": "kab-a1-p01-bursty-1024"
+    },
+    {
+      "pair": 2,
+      "condition": "recovery-800",
+      "hold_ms": 835,
+      "buffer_kib": 256,
+      "mode": "probe",
+      "phase": "a1",
+      "role": "original",
+      "id": "kab-a1-p02-recovery-800"
+    },
+    {
+      "pair": 8,
+      "condition": "recovery-800",
+      "hold_ms": 835,
+      "buffer_kib": 256,
+      "mode": "probe",
+      "phase": "a1",
+      "role": "original",
+      "id": "kab-a1-p08-recovery-800"
+    },
+    {
+      "pair": 6,
+      "condition": "recovery-200",
+      "hold_ms": 184,
+      "buffer_kib": 256,
+      "mode": "probe",
+      "phase": "a1",
+      "role": "original",
+      "id": "kab-a1-p06-recovery-200"
+    },
+    {
+      "pair": 1,
+      "condition": "steady-256",
+      "hold_ms": 0,
+      "buffer_kib": 256,
+      "mode": "steady",
+      "phase": "a1",
+      "role": "original",
+      "id": "kab-a1-p01-steady-256"
+    },
+    {
+      "pair": 4,
+      "condition": "pinned-256",
+      "hold_ms": 0,
+      "buffer_kib": 256,
+      "mode": "steady",
+      "phase": "a1",
+      "role": "original",
+      "id": "kab-a1-p04-pinned-256"
+    },
+    {
+      "pair": 5,
+      "condition": "recovery-800",
+      "hold_ms": 835,
+      "buffer_kib": 256,
+      "mode": "probe",
+      "phase": "a1",
+      "role": "original",
+      "id": "kab-a1-p05-recovery-800"
+    },
+    {
+      "pair": 4,
+      "condition": "bursty-1024",
+      "hold_ms": 0,
+      "buffer_kib": 1024,
+      "mode": "bursty",
+      "phase": "a1",
+      "role": "original",
+      "id": "kab-a1-p04-bursty-1024"
+    },
+    {
+      "pair": 2,
+      "condition": "bursty-256",
+      "hold_ms": 0,
+      "buffer_kib": 256,
+      "mode": "bursty",
+      "phase": "a1",
+      "role": "original",
+      "id": "kab-a1-p02-bursty-256"
+    },
+    {
+      "pair": 3,
+      "condition": "recovery-800",
+      "hold_ms": 835,
+      "buffer_kib": 256,
+      "mode": "probe",
+      "phase": "a1",
+      "role": "original",
+      "id": "kab-a1-p03-recovery-800"
+    },
+    {
+      "pair": 4,
+      "condition": "recovery-200",
+      "hold_ms": 250,
+      "buffer_kib": 256,
+      "mode": "probe",
+      "phase": "a1",
+      "role": "original",
+      "id": "kab-a1-p04-recovery-200"
+    },
+    {
+      "pair": 3,
+      "condition": "bursty-1024",
+      "hold_ms": 0,
+      "buffer_kib": 1024,
+      "mode": "bursty",
+      "phase": "a1",
+      "role": "original",
+      "id": "kab-a1-p03-bursty-1024"
+    },
+    {
+      "pair": 1,
+      "condition": "pinned-256",
+      "hold_ms": 0,
+      "buffer_kib": 256,
+      "mode": "steady",
+      "phase": "a1",
+      "role": "original",
+      "id": "kab-a1-p01-pinned-256"
+    },
+    {
+      "pair": 7,
+      "condition": "recovery-200",
+      "hold_ms": 166,
+      "buffer_kib": 256,
+      "mode": "probe",
+      "phase": "a1",
+      "role": "original",
+      "id": "kab-a1-p07-recovery-200"
+    },
+    {
+      "pair": 4,
+      "condition": "recovery-800",
+      "hold_ms": 835,
+      "buffer_kib": 256,
+      "mode": "probe",
+      "phase": "a1",
+      "role": "original",
+      "id": "kab-a1-p04-recovery-800"
+    },
+    {
+      "pair": 6,
+      "condition": "recovery-800",
+      "hold_ms": 835,
+      "buffer_kib": 256,
+      "mode": "probe",
+      "phase": "a1",
+      "role": "original",
+      "id": "kab-a1-p06-recovery-800"
+    },
+    {
+      "pair": 1,
+      "condition": "bursty-256",
+      "hold_ms": 0,
+      "buffer_kib": 256,
+      "mode": "bursty",
+      "phase": "a1",
+      "role": "original",
+      "id": "kab-a1-p01-bursty-256"
+    },
+    {
+      "pair": 3,
+      "condition": "bursty-64",
+      "hold_ms": 0,
+      "buffer_kib": 64,
+      "mode": "bursty",
+      "phase": "a1",
+      "role": "original",
+      "id": "kab-a1-p03-bursty-64"
+    },
+    {
+      "pair": 4,
+      "condition": "steady-256",
+      "hold_ms": 0,
+      "buffer_kib": 256,
+      "mode": "steady",
+      "phase": "a1",
+      "role": "original",
+      "id": "kab-a1-p04-steady-256"
+    },
+    {
+      "pair": 3,
+      "condition": "bursty-256",
+      "hold_ms": 0,
+      "buffer_kib": 256,
+      "mode": "bursty",
+      "phase": "a1",
+      "role": "original",
+      "id": "kab-a1-p03-bursty-256"
+    },
+    {
+      "pair": 3,
+      "condition": "recovery-200",
+      "hold_ms": 191,
+      "buffer_kib": 256,
+      "mode": "probe",
+      "phase": "a1",
+      "role": "original",
+      "id": "kab-a1-p03-recovery-200"
+    },
+    {
+      "pair": 3,
+      "condition": "steady-256",
+      "hold_ms": 0,
+      "buffer_kib": 256,
+      "mode": "steady",
+      "phase": "a1",
+      "role": "original",
+      "id": "kab-a1-p03-steady-256"
+    },
+    {
+      "pair": 2,
+      "condition": "bursty-64",
+      "hold_ms": 0,
+      "buffer_kib": 64,
+      "mode": "bursty",
+      "phase": "a1",
+      "role": "original",
+      "id": "kab-a1-p02-bursty-64"
+    },
+    {
+      "pair": 4,
+      "condition": "bursty-64",
+      "hold_ms": 0,
+      "buffer_kib": 64,
+      "mode": "bursty",
+      "phase": "a1",
+      "role": "original",
+      "id": "kab-a1-p04-bursty-64"
+    },
+    {
+      "pair": 5,
+      "condition": "recovery-200",
+      "hold_ms": 143,
+      "buffer_kib": 256,
+      "mode": "probe",
+      "phase": "a1",
+      "role": "original",
+      "id": "kab-a1-p05-recovery-200"
+    },
+    {
+      "pair": 2,
+      "condition": "recovery-200",
+      "hold_ms": 257,
+      "buffer_kib": 256,
+      "mode": "probe",
+      "phase": "a1",
+      "role": "original",
+      "id": "kab-a1-p02-recovery-200"
+    },
+    {
+      "pair": 7,
+      "condition": "recovery-800",
+      "hold_ms": 835,
+      "buffer_kib": 256,
+      "mode": "probe",
+      "phase": "a1",
+      "role": "original",
+      "id": "kab-a1-p07-recovery-800"
+    },
+    {
+      "pair": 2,
+      "condition": "steady-256",
+      "hold_ms": 0,
+      "buffer_kib": 256,
+      "mode": "steady",
+      "phase": "a1",
+      "role": "original",
+      "id": "kab-a1-p02-steady-256"
+    },
+    {
+      "pair": 1,
+      "condition": "bursty-64",
+      "hold_ms": 0,
+      "buffer_kib": 64,
+      "mode": "bursty",
+      "phase": "a1",
+      "role": "original",
+      "id": "kab-a1-p01-bursty-64"
+    },
+    {
+      "pair": 2,
+      "condition": "pinned-256",
+      "hold_ms": 0,
+      "buffer_kib": 256,
+      "mode": "steady",
+      "phase": "a1",
+      "role": "original",
+      "id": "kab-a1-p02-pinned-256"
+    },
+    {
+      "pair": 1,
+      "condition": "recovery-200",
+      "hold_ms": 190,
+      "buffer_kib": 256,
+      "mode": "probe",
+      "phase": "a1",
+      "role": "original",
+      "id": "kab-a1-p01-recovery-200"
+    },
+    {
+      "pair": 8,
+      "condition": "recovery-200",
+      "hold_ms": 136,
+      "buffer_kib": 256,
+      "mode": "probe",
+      "phase": "b1",
+      "role": "modified",
+      "id": "kab-b1-p08-recovery-200"
+    },
+    {
+      "pair": 4,
+      "condition": "bursty-256",
+      "hold_ms": 0,
+      "buffer_kib": 256,
+      "mode": "bursty",
+      "phase": "b1",
+      "role": "modified",
+      "id": "kab-b1-p04-bursty-256"
+    },
+    {
+      "pair": 1,
+      "condition": "recovery-800",
+      "hold_ms": 835,
+      "buffer_kib": 256,
+      "mode": "probe",
+      "phase": "b1",
+      "role": "modified",
+      "id": "kab-b1-p01-recovery-800"
+    },
+    {
+      "pair": 3,
+      "condition": "pinned-256",
+      "hold_ms": 0,
+      "buffer_kib": 256,
+      "mode": "steady",
+      "phase": "b1",
+      "role": "modified",
+      "id": "kab-b1-p03-pinned-256"
+    },
+    {
+      "pair": 2,
+      "condition": "bursty-1024",
+      "hold_ms": 0,
+      "buffer_kib": 1024,
+      "mode": "bursty",
+      "phase": "b1",
+      "role": "modified",
+      "id": "kab-b1-p02-bursty-1024"
+    },
+    {
+      "pair": 1,
+      "condition": "bursty-1024",
+      "hold_ms": 0,
+      "buffer_kib": 1024,
+      "mode": "bursty",
+      "phase": "b1",
+      "role": "modified",
+      "id": "kab-b1-p01-bursty-1024"
+    },
+    {
+      "pair": 2,
+      "condition": "recovery-800",
+      "hold_ms": 835,
+      "buffer_kib": 256,
+      "mode": "probe",
+      "phase": "b1",
+      "role": "modified",
+      "id": "kab-b1-p02-recovery-800"
+    },
+    {
+      "pair": 8,
+      "condition": "recovery-800",
+      "hold_ms": 835,
+      "buffer_kib": 256,
+      "mode": "probe",
+      "phase": "b1",
+      "role": "modified",
+      "id": "kab-b1-p08-recovery-800"
+    },
+    {
+      "pair": 6,
+      "condition": "recovery-200",
+      "hold_ms": 184,
+      "buffer_kib": 256,
+      "mode": "probe",
+      "phase": "b1",
+      "role": "modified",
+      "id": "kab-b1-p06-recovery-200"
+    },
+    {
+      "pair": 1,
+      "condition": "steady-256",
+      "hold_ms": 0,
+      "buffer_kib": 256,
+      "mode": "steady",
+      "phase": "b1",
+      "role": "modified",
+      "id": "kab-b1-p01-steady-256"
+    },
+    {
+      "pair": 4,
+      "condition": "pinned-256",
+      "hold_ms": 0,
+      "buffer_kib": 256,
+      "mode": "steady",
+      "phase": "b1",
+      "role": "modified",
+      "id": "kab-b1-p04-pinned-256"
+    },
+    {
+      "pair": 5,
+      "condition": "recovery-800",
+      "hold_ms": 835,
+      "buffer_kib": 256,
+      "mode": "probe",
+      "phase": "b1",
+      "role": "modified",
+      "id": "kab-b1-p05-recovery-800"
+    },
+    {
+      "pair": 4,
+      "condition": "bursty-1024",
+      "hold_ms": 0,
+      "buffer_kib": 1024,
+      "mode": "bursty",
+      "phase": "b1",
+      "role": "modified",
+      "id": "kab-b1-p04-bursty-1024"
+    },
+    {
+      "pair": 2,
+      "condition": "bursty-256",
+      "hold_ms": 0,
+      "buffer_kib": 256,
+      "mode": "bursty",
+      "phase": "b1",
+      "role": "modified",
+      "id": "kab-b1-p02-bursty-256"
+    },
+    {
+      "pair": 3,
+      "condition": "recovery-800",
+      "hold_ms": 835,
+      "buffer_kib": 256,
+      "mode": "probe",
+      "phase": "b1",
+      "role": "modified",
+      "id": "kab-b1-p03-recovery-800"
+    },
+    {
+      "pair": 4,
+      "condition": "recovery-200",
+      "hold_ms": 250,
+      "buffer_kib": 256,
+      "mode": "probe",
+      "phase": "b1",
+      "role": "modified",
+      "id": "kab-b1-p04-recovery-200"
+    },
+    {
+      "pair": 3,
+      "condition": "bursty-1024",
+      "hold_ms": 0,
+      "buffer_kib": 1024,
+      "mode": "bursty",
+      "phase": "b1",
+      "role": "modified",
+      "id": "kab-b1-p03-bursty-1024"
+    },
+    {
+      "pair": 1,
+      "condition": "pinned-256",
+      "hold_ms": 0,
+      "buffer_kib": 256,
+      "mode": "steady",
+      "phase": "b1",
+      "role": "modified",
+      "id": "kab-b1-p01-pinned-256"
+    },
+    {
+      "pair": 7,
+      "condition": "recovery-200",
+      "hold_ms": 166,
+      "buffer_kib": 256,
+      "mode": "probe",
+      "phase": "b1",
+      "role": "modified",
+      "id": "kab-b1-p07-recovery-200"
+    },
+    {
+      "pair": 4,
+      "condition": "recovery-800",
+      "hold_ms": 835,
+      "buffer_kib": 256,
+      "mode": "probe",
+      "phase": "b1",
+      "role": "modified",
+      "id": "kab-b1-p04-recovery-800"
+    },
+    {
+      "pair": 6,
+      "condition": "recovery-800",
+      "hold_ms": 835,
+      "buffer_kib": 256,
+      "mode": "probe",
+      "phase": "b1",
+      "role": "modified",
+      "id": "kab-b1-p06-recovery-800"
+    },
+    {
+      "pair": 1,
+      "condition": "bursty-256",
+      "hold_ms": 0,
+      "buffer_kib": 256,
+      "mode": "bursty",
+      "phase": "b1",
+      "role": "modified",
+      "id": "kab-b1-p01-bursty-256"
+    },
+    {
+      "pair": 3,
+      "condition": "bursty-64",
+      "hold_ms": 0,
+      "buffer_kib": 64,
+      "mode": "bursty",
+      "phase": "b1",
+      "role": "modified",
+      "id": "kab-b1-p03-bursty-64"
+    },
+    {
+      "pair": 4,
+      "condition": "steady-256",
+      "hold_ms": 0,
+      "buffer_kib": 256,
+      "mode": "steady",
+      "phase": "b1",
+      "role": "modified",
+      "id": "kab-b1-p04-steady-256"
+    },
+    {
+      "pair": 3,
+      "condition": "bursty-256",
+      "hold_ms": 0,
+      "buffer_kib": 256,
+      "mode": "bursty",
+      "phase": "b1",
+      "role": "modified",
+      "id": "kab-b1-p03-bursty-256"
+    },
+    {
+      "pair": 3,
+      "condition": "recovery-200",
+      "hold_ms": 191,
+      "buffer_kib": 256,
+      "mode": "probe",
+      "phase": "b1",
+      "role": "modified",
+      "id": "kab-b1-p03-recovery-200"
+    },
+    {
+      "pair": 3,
+      "condition": "steady-256",
+      "hold_ms": 0,
+      "buffer_kib": 256,
+      "mode": "steady",
+      "phase": "b1",
+      "role": "modified",
+      "id": "kab-b1-p03-steady-256"
+    },
+    {
+      "pair": 2,
+      "condition": "bursty-64",
+      "hold_ms": 0,
+      "buffer_kib": 64,
+      "mode": "bursty",
+      "phase": "b1",
+      "role": "modified",
+      "id": "kab-b1-p02-bursty-64"
+    },
+    {
+      "pair": 4,
+      "condition": "bursty-64",
+      "hold_ms": 0,
+      "buffer_kib": 64,
+      "mode": "bursty",
+      "phase": "b1",
+      "role": "modified",
+      "id": "kab-b1-p04-bursty-64"
+    },
+    {
+      "pair": 5,
+      "condition": "recovery-200",
+      "hold_ms": 143,
+      "buffer_kib": 256,
+      "mode": "probe",
+      "phase": "b1",
+      "role": "modified",
+      "id": "kab-b1-p05-recovery-200"
+    },
+    {
+      "pair": 2,
+      "condition": "recovery-200",
+      "hold_ms": 257,
+      "buffer_kib": 256,
+      "mode": "probe",
+      "phase": "b1",
+      "role": "modified",
+      "id": "kab-b1-p02-recovery-200"
+    },
+    {
+      "pair": 7,
+      "condition": "recovery-800",
+      "hold_ms": 835,
+      "buffer_kib": 256,
+      "mode": "probe",
+      "phase": "b1",
+      "role": "modified",
+      "id": "kab-b1-p07-recovery-800"
+    },
+    {
+      "pair": 2,
+      "condition": "steady-256",
+      "hold_ms": 0,
+      "buffer_kib": 256,
+      "mode": "steady",
+      "phase": "b1",
+      "role": "modified",
+      "id": "kab-b1-p02-steady-256"
+    },
+    {
+      "pair": 1,
+      "condition": "bursty-64",
+      "hold_ms": 0,
+      "buffer_kib": 64,
+      "mode": "bursty",
+      "phase": "b1",
+      "role": "modified",
+      "id": "kab-b1-p01-bursty-64"
+    },
+    {
+      "pair": 2,
+      "condition": "pinned-256",
+      "hold_ms": 0,
+      "buffer_kib": 256,
+      "mode": "steady",
+      "phase": "b1",
+      "role": "modified",
+      "id": "kab-b1-p02-pinned-256"
+    },
+    {
+      "pair": 1,
+      "condition": "recovery-200",
+      "hold_ms": 190,
+      "buffer_kib": 256,
+      "mode": "probe",
+      "phase": "b1",
+      "role": "modified",
+      "id": "kab-b1-p01-recovery-200"
+    },
+    {
+      "pair": 8,
+      "condition": "recovery-200",
+      "hold_ms": 136,
+      "buffer_kib": 256,
+      "mode": "probe",
+      "phase": "a2",
+      "role": "original",
+      "id": "kab-a2-p08-recovery-200"
+    },
+    {
+      "pair": 4,
+      "condition": "bursty-256",
+      "hold_ms": 0,
+      "buffer_kib": 256,
+      "mode": "bursty",
+      "phase": "a2",
+      "role": "original",
+      "id": "kab-a2-p04-bursty-256"
+    },
+    {
+      "pair": 1,
+      "condition": "recovery-800",
+      "hold_ms": 835,
+      "buffer_kib": 256,
+      "mode": "probe",
+      "phase": "a2",
+      "role": "original",
+      "id": "kab-a2-p01-recovery-800"
+    },
+    {
+      "pair": 3,
+      "condition": "pinned-256",
+      "hold_ms": 0,
+      "buffer_kib": 256,
+      "mode": "steady",
+      "phase": "a2",
+      "role": "original",
+      "id": "kab-a2-p03-pinned-256"
+    },
+    {
+      "pair": 2,
+      "condition": "bursty-1024",
+      "hold_ms": 0,
+      "buffer_kib": 1024,
+      "mode": "bursty",
+      "phase": "a2",
+      "role": "original",
+      "id": "kab-a2-p02-bursty-1024"
+    },
+    {
+      "pair": 1,
+      "condition": "bursty-1024",
+      "hold_ms": 0,
+      "buffer_kib": 1024,
+      "mode": "bursty",
+      "phase": "a2",
+      "role": "original",
+      "id": "kab-a2-p01-bursty-1024"
+    },
+    {
+      "pair": 2,
+      "condition": "recovery-800",
+      "hold_ms": 835,
+      "buffer_kib": 256,
+      "mode": "probe",
+      "phase": "a2",
+      "role": "original",
+      "id": "kab-a2-p02-recovery-800"
+    },
+    {
+      "pair": 8,
+      "condition": "recovery-800",
+      "hold_ms": 835,
+      "buffer_kib": 256,
+      "mode": "probe",
+      "phase": "a2",
+      "role": "original",
+      "id": "kab-a2-p08-recovery-800"
+    },
+    {
+      "pair": 6,
+      "condition": "recovery-200",
+      "hold_ms": 184,
+      "buffer_kib": 256,
+      "mode": "probe",
+      "phase": "a2",
+      "role": "original",
+      "id": "kab-a2-p06-recovery-200"
+    },
+    {
+      "pair": 1,
+      "condition": "steady-256",
+      "hold_ms": 0,
+      "buffer_kib": 256,
+      "mode": "steady",
+      "phase": "a2",
+      "role": "original",
+      "id": "kab-a2-p01-steady-256"
+    },
+    {
+      "pair": 4,
+      "condition": "pinned-256",
+      "hold_ms": 0,
+      "buffer_kib": 256,
+      "mode": "steady",
+      "phase": "a2",
+      "role": "original",
+      "id": "kab-a2-p04-pinned-256"
+    },
+    {
+      "pair": 5,
+      "condition": "recovery-800",
+      "hold_ms": 835,
+      "buffer_kib": 256,
+      "mode": "probe",
+      "phase": "a2",
+      "role": "original",
+      "id": "kab-a2-p05-recovery-800"
+    },
+    {
+      "pair": 4,
+      "condition": "bursty-1024",
+      "hold_ms": 0,
+      "buffer_kib": 1024,
+      "mode": "bursty",
+      "phase": "a2",
+      "role": "original",
+      "id": "kab-a2-p04-bursty-1024"
+    },
+    {
+      "pair": 2,
+      "condition": "bursty-256",
+      "hold_ms": 0,
+      "buffer_kib": 256,
+      "mode": "bursty",
+      "phase": "a2",
+      "role": "original",
+      "id": "kab-a2-p02-bursty-256"
+    },
+    {
+      "pair": 3,
+      "condition": "recovery-800",
+      "hold_ms": 835,
+      "buffer_kib": 256,
+      "mode": "probe",
+      "phase": "a2",
+      "role": "original",
+      "id": "kab-a2-p03-recovery-800"
+    },
+    {
+      "pair": 4,
+      "condition": "recovery-200",
+      "hold_ms": 250,
+      "buffer_kib": 256,
+      "mode": "probe",
+      "phase": "a2",
+      "role": "original",
+      "id": "kab-a2-p04-recovery-200"
+    },
+    {
+      "pair": 3,
+      "condition": "bursty-1024",
+      "hold_ms": 0,
+      "buffer_kib": 1024,
+      "mode": "bursty",
+      "phase": "a2",
+      "role": "original",
+      "id": "kab-a2-p03-bursty-1024"
+    },
+    {
+      "pair": 1,
+      "condition": "pinned-256",
+      "hold_ms": 0,
+      "buffer_kib": 256,
+      "mode": "steady",
+      "phase": "a2",
+      "role": "original",
+      "id": "kab-a2-p01-pinned-256"
+    },
+    {
+      "pair": 7,
+      "condition": "recovery-200",
+      "hold_ms": 166,
+      "buffer_kib": 256,
+      "mode": "probe",
+      "phase": "a2",
+      "role": "original",
+      "id": "kab-a2-p07-recovery-200"
+    },
+    {
+      "pair": 4,
+      "condition": "recovery-800",
+      "hold_ms": 835,
+      "buffer_kib": 256,
+      "mode": "probe",
+      "phase": "a2",
+      "role": "original",
+      "id": "kab-a2-p04-recovery-800"
+    },
+    {
+      "pair": 6,
+      "condition": "recovery-800",
+      "hold_ms": 835,
+      "buffer_kib": 256,
+      "mode": "probe",
+      "phase": "a2",
+      "role": "original",
+      "id": "kab-a2-p06-recovery-800"
+    },
+    {
+      "pair": 1,
+      "condition": "bursty-256",
+      "hold_ms": 0,
+      "buffer_kib": 256,
+      "mode": "bursty",
+      "phase": "a2",
+      "role": "original",
+      "id": "kab-a2-p01-bursty-256"
+    },
+    {
+      "pair": 3,
+      "condition": "bursty-64",
+      "hold_ms": 0,
+      "buffer_kib": 64,
+      "mode": "bursty",
+      "phase": "a2",
+      "role": "original",
+      "id": "kab-a2-p03-bursty-64"
+    },
+    {
+      "pair": 4,
+      "condition": "steady-256",
+      "hold_ms": 0,
+      "buffer_kib": 256,
+      "mode": "steady",
+      "phase": "a2",
+      "role": "original",
+      "id": "kab-a2-p04-steady-256"
+    },
+    {
+      "pair": 3,
+      "condition": "bursty-256",
+      "hold_ms": 0,
+      "buffer_kib": 256,
+      "mode": "bursty",
+      "phase": "a2",
+      "role": "original",
+      "id": "kab-a2-p03-bursty-256"
+    },
+    {
+      "pair": 3,
+      "condition": "recovery-200",
+      "hold_ms": 191,
+      "buffer_kib": 256,
+      "mode": "probe",
+      "phase": "a2",
+      "role": "original",
+      "id": "kab-a2-p03-recovery-200"
+    },
+    {
+      "pair": 3,
+      "condition": "steady-256",
+      "hold_ms": 0,
+      "buffer_kib": 256,
+      "mode": "steady",
+      "phase": "a2",
+      "role": "original",
+      "id": "kab-a2-p03-steady-256"
+    },
+    {
+      "pair": 2,
+      "condition": "bursty-64",
+      "hold_ms": 0,
+      "buffer_kib": 64,
+      "mode": "bursty",
+      "phase": "a2",
+      "role": "original",
+      "id": "kab-a2-p02-bursty-64"
+    },
+    {
+      "pair": 4,
+      "condition": "bursty-64",
+      "hold_ms": 0,
+      "buffer_kib": 64,
+      "mode": "bursty",
+      "phase": "a2",
+      "role": "original",
+      "id": "kab-a2-p04-bursty-64"
+    },
+    {
+      "pair": 5,
+      "condition": "recovery-200",
+      "hold_ms": 143,
+      "buffer_kib": 256,
+      "mode": "probe",
+      "phase": "a2",
+      "role": "original",
+      "id": "kab-a2-p05-recovery-200"
+    },
+    {
+      "pair": 2,
+      "condition": "recovery-200",
+      "hold_ms": 257,
+      "buffer_kib": 256,
+      "mode": "probe",
+      "phase": "a2",
+      "role": "original",
+      "id": "kab-a2-p02-recovery-200"
+    },
+    {
+      "pair": 7,
+      "condition": "recovery-800",
+      "hold_ms": 835,
+      "buffer_kib": 256,
+      "mode": "probe",
+      "phase": "a2",
+      "role": "original",
+      "id": "kab-a2-p07-recovery-800"
+    },
+    {
+      "pair": 2,
+      "condition": "steady-256",
+      "hold_ms": 0,
+      "buffer_kib": 256,
+      "mode": "steady",
+      "phase": "a2",
+      "role": "original",
+      "id": "kab-a2-p02-steady-256"
+    },
+    {
+      "pair": 1,
+      "condition": "bursty-64",
+      "hold_ms": 0,
+      "buffer_kib": 64,
+      "mode": "bursty",
+      "phase": "a2",
+      "role": "original",
+      "id": "kab-a2-p01-bursty-64"
+    },
+    {
+      "pair": 2,
+      "condition": "pinned-256",
+      "hold_ms": 0,
+      "buffer_kib": 256,
+      "mode": "steady",
+      "phase": "a2",
+      "role": "original",
+      "id": "kab-a2-p02-pinned-256"
+    },
+    {
+      "pair": 1,
+      "condition": "recovery-200",
+      "hold_ms": 190,
+      "buffer_kib": 256,
+      "mode": "probe",
+      "phase": "a2",
+      "role": "original",
+      "id": "kab-a2-p01-recovery-200"
+    },
+    {
+      "pair": 8,
+      "condition": "recovery-200",
+      "hold_ms": 136,
+      "buffer_kib": 256,
+      "mode": "probe",
+      "phase": "b2",
+      "role": "modified",
+      "id": "kab-b2-p08-recovery-200"
+    },
+    {
+      "pair": 4,
+      "condition": "bursty-256",
+      "hold_ms": 0,
+      "buffer_kib": 256,
+      "mode": "bursty",
+      "phase": "b2",
+      "role": "modified",
+      "id": "kab-b2-p04-bursty-256"
+    },
+    {
+      "pair": 1,
+      "condition": "recovery-800",
+      "hold_ms": 835,
+      "buffer_kib": 256,
+      "mode": "probe",
+      "phase": "b2",
+      "role": "modified",
+      "id": "kab-b2-p01-recovery-800"
+    },
+    {
+      "pair": 3,
+      "condition": "pinned-256",
+      "hold_ms": 0,
+      "buffer_kib": 256,
+      "mode": "steady",
+      "phase": "b2",
+      "role": "modified",
+      "id": "kab-b2-p03-pinned-256"
+    },
+    {
+      "pair": 2,
+      "condition": "bursty-1024",
+      "hold_ms": 0,
+      "buffer_kib": 1024,
+      "mode": "bursty",
+      "phase": "b2",
+      "role": "modified",
+      "id": "kab-b2-p02-bursty-1024"
+    },
+    {
+      "pair": 1,
+      "condition": "bursty-1024",
+      "hold_ms": 0,
+      "buffer_kib": 1024,
+      "mode": "bursty",
+      "phase": "b2",
+      "role": "modified",
+      "id": "kab-b2-p01-bursty-1024"
+    },
+    {
+      "pair": 2,
+      "condition": "recovery-800",
+      "hold_ms": 835,
+      "buffer_kib": 256,
+      "mode": "probe",
+      "phase": "b2",
+      "role": "modified",
+      "id": "kab-b2-p02-recovery-800"
+    },
+    {
+      "pair": 8,
+      "condition": "recovery-800",
+      "hold_ms": 835,
+      "buffer_kib": 256,
+      "mode": "probe",
+      "phase": "b2",
+      "role": "modified",
+      "id": "kab-b2-p08-recovery-800"
+    },
+    {
+      "pair": 6,
+      "condition": "recovery-200",
+      "hold_ms": 184,
+      "buffer_kib": 256,
+      "mode": "probe",
+      "phase": "b2",
+      "role": "modified",
+      "id": "kab-b2-p06-recovery-200"
+    },
+    {
+      "pair": 1,
+      "condition": "steady-256",
+      "hold_ms": 0,
+      "buffer_kib": 256,
+      "mode": "steady",
+      "phase": "b2",
+      "role": "modified",
+      "id": "kab-b2-p01-steady-256"
+    },
+    {
+      "pair": 4,
+      "condition": "pinned-256",
+      "hold_ms": 0,
+      "buffer_kib": 256,
+      "mode": "steady",
+      "phase": "b2",
+      "role": "modified",
+      "id": "kab-b2-p04-pinned-256"
+    },
+    {
+      "pair": 5,
+      "condition": "recovery-800",
+      "hold_ms": 835,
+      "buffer_kib": 256,
+      "mode": "probe",
+      "phase": "b2",
+      "role": "modified",
+      "id": "kab-b2-p05-recovery-800"
+    },
+    {
+      "pair": 4,
+      "condition": "bursty-1024",
+      "hold_ms": 0,
+      "buffer_kib": 1024,
+      "mode": "bursty",
+      "phase": "b2",
+      "role": "modified",
+      "id": "kab-b2-p04-bursty-1024"
+    },
+    {
+      "pair": 2,
+      "condition": "bursty-256",
+      "hold_ms": 0,
+      "buffer_kib": 256,
+      "mode": "bursty",
+      "phase": "b2",
+      "role": "modified",
+      "id": "kab-b2-p02-bursty-256"
+    },
+    {
+      "pair": 3,
+      "condition": "recovery-800",
+      "hold_ms": 835,
+      "buffer_kib": 256,
+      "mode": "probe",
+      "phase": "b2",
+      "role": "modified",
+      "id": "kab-b2-p03-recovery-800"
+    },
+    {
+      "pair": 4,
+      "condition": "recovery-200",
+      "hold_ms": 250,
+      "buffer_kib": 256,
+      "mode": "probe",
+      "phase": "b2",
+      "role": "modified",
+      "id": "kab-b2-p04-recovery-200"
+    },
+    {
+      "pair": 3,
+      "condition": "bursty-1024",
+      "hold_ms": 0,
+      "buffer_kib": 1024,
+      "mode": "bursty",
+      "phase": "b2",
+      "role": "modified",
+      "id": "kab-b2-p03-bursty-1024"
+    },
+    {
+      "pair": 1,
+      "condition": "pinned-256",
+      "hold_ms": 0,
+      "buffer_kib": 256,
+      "mode": "steady",
+      "phase": "b2",
+      "role": "modified",
+      "id": "kab-b2-p01-pinned-256"
+    },
+    {
+      "pair": 7,
+      "condition": "recovery-200",
+      "hold_ms": 166,
+      "buffer_kib": 256,
+      "mode": "probe",
+      "phase": "b2",
+      "role": "modified",
+      "id": "kab-b2-p07-recovery-200"
+    },
+    {
+      "pair": 4,
+      "condition": "recovery-800",
+      "hold_ms": 835,
+      "buffer_kib": 256,
+      "mode": "probe",
+      "phase": "b2",
+      "role": "modified",
+      "id": "kab-b2-p04-recovery-800"
+    },
+    {
+      "pair": 6,
+      "condition": "recovery-800",
+      "hold_ms": 835,
+      "buffer_kib": 256,
+      "mode": "probe",
+      "phase": "b2",
+      "role": "modified",
+      "id": "kab-b2-p06-recovery-800"
+    },
+    {
+      "pair": 1,
+      "condition": "bursty-256",
+      "hold_ms": 0,
+      "buffer_kib": 256,
+      "mode": "bursty",
+      "phase": "b2",
+      "role": "modified",
+      "id": "kab-b2-p01-bursty-256"
+    },
+    {
+      "pair": 3,
+      "condition": "bursty-64",
+      "hold_ms": 0,
+      "buffer_kib": 64,
+      "mode": "bursty",
+      "phase": "b2",
+      "role": "modified",
+      "id": "kab-b2-p03-bursty-64"
+    },
+    {
+      "pair": 4,
+      "condition": "steady-256",
+      "hold_ms": 0,
+      "buffer_kib": 256,
+      "mode": "steady",
+      "phase": "b2",
+      "role": "modified",
+      "id": "kab-b2-p04-steady-256"
+    },
+    {
+      "pair": 3,
+      "condition": "bursty-256",
+      "hold_ms": 0,
+      "buffer_kib": 256,
+      "mode": "bursty",
+      "phase": "b2",
+      "role": "modified",
+      "id": "kab-b2-p03-bursty-256"
+    },
+    {
+      "pair": 3,
+      "condition": "recovery-200",
+      "hold_ms": 191,
+      "buffer_kib": 256,
+      "mode": "probe",
+      "phase": "b2",
+      "role": "modified",
+      "id": "kab-b2-p03-recovery-200"
+    },
+    {
+      "pair": 3,
+      "condition": "steady-256",
+      "hold_ms": 0,
+      "buffer_kib": 256,
+      "mode": "steady",
+      "phase": "b2",
+      "role": "modified",
+      "id": "kab-b2-p03-steady-256"
+    },
+    {
+      "pair": 2,
+      "condition": "bursty-64",
+      "hold_ms": 0,
+      "buffer_kib": 64,
+      "mode": "bursty",
+      "phase": "b2",
+      "role": "modified",
+      "id": "kab-b2-p02-bursty-64"
+    },
+    {
+      "pair": 4,
+      "condition": "bursty-64",
+      "hold_ms": 0,
+      "buffer_kib": 64,
+      "mode": "bursty",
+      "phase": "b2",
+      "role": "modified",
+      "id": "kab-b2-p04-bursty-64"
+    },
+    {
+      "pair": 5,
+      "condition": "recovery-200",
+      "hold_ms": 143,
+      "buffer_kib": 256,
+      "mode": "probe",
+      "phase": "b2",
+      "role": "modified",
+      "id": "kab-b2-p05-recovery-200"
+    },
+    {
+      "pair": 2,
+      "condition": "recovery-200",
+      "hold_ms": 257,
+      "buffer_kib": 256,
+      "mode": "probe",
+      "phase": "b2",
+      "role": "modified",
+      "id": "kab-b2-p02-recovery-200"
+    },
+    {
+      "pair": 7,
+      "condition": "recovery-800",
+      "hold_ms": 835,
+      "buffer_kib": 256,
+      "mode": "probe",
+      "phase": "b2",
+      "role": "modified",
+      "id": "kab-b2-p07-recovery-800"
+    },
+    {
+      "pair": 2,
+      "condition": "steady-256",
+      "hold_ms": 0,
+      "buffer_kib": 256,
+      "mode": "steady",
+      "phase": "b2",
+      "role": "modified",
+      "id": "kab-b2-p02-steady-256"
+    },
+    {
+      "pair": 1,
+      "condition": "bursty-64",
+      "hold_ms": 0,
+      "buffer_kib": 64,
+      "mode": "bursty",
+      "phase": "b2",
+      "role": "modified",
+      "id": "kab-b2-p01-bursty-64"
+    },
+    {
+      "pair": 2,
+      "condition": "pinned-256",
+      "hold_ms": 0,
+      "buffer_kib": 256,
+      "mode": "steady",
+      "phase": "b2",
+      "role": "modified",
+      "id": "kab-b2-p02-pinned-256"
+    },
+    {
+      "pair": 1,
+      "condition": "recovery-200",
+      "hold_ms": 190,
+      "buffer_kib": 256,
+      "mode": "probe",
+      "phase": "b2",
+      "role": "modified",
+      "id": "kab-b2-p01-recovery-200"
+    },
+    {
+      "pair": 8,
+      "condition": "recovery-200",
+      "hold_ms": 136,
+      "buffer_kib": 256,
+      "mode": "probe",
+      "phase": "a3",
+      "role": "original",
+      "id": "kab-a3-p08-recovery-200"
+    },
+    {
+      "pair": 4,
+      "condition": "bursty-256",
+      "hold_ms": 0,
+      "buffer_kib": 256,
+      "mode": "bursty",
+      "phase": "a3",
+      "role": "original",
+      "id": "kab-a3-p04-bursty-256"
+    },
+    {
+      "pair": 1,
+      "condition": "recovery-800",
+      "hold_ms": 835,
+      "buffer_kib": 256,
+      "mode": "probe",
+      "phase": "a3",
+      "role": "original",
+      "id": "kab-a3-p01-recovery-800"
+    },
+    {
+      "pair": 3,
+      "condition": "pinned-256",
+      "hold_ms": 0,
+      "buffer_kib": 256,
+      "mode": "steady",
+      "phase": "a3",
+      "role": "original",
+      "id": "kab-a3-p03-pinned-256"
+    },
+    {
+      "pair": 2,
+      "condition": "bursty-1024",
+      "hold_ms": 0,
+      "buffer_kib": 1024,
+      "mode": "bursty",
+      "phase": "a3",
+      "role": "original",
+      "id": "kab-a3-p02-bursty-1024"
+    },
+    {
+      "pair": 1,
+      "condition": "bursty-1024",
+      "hold_ms": 0,
+      "buffer_kib": 1024,
+      "mode": "bursty",
+      "phase": "a3",
+      "role": "original",
+      "id": "kab-a3-p01-bursty-1024"
+    },
+    {
+      "pair": 2,
+      "condition": "recovery-800",
+      "hold_ms": 835,
+      "buffer_kib": 256,
+      "mode": "probe",
+      "phase": "a3",
+      "role": "original",
+      "id": "kab-a3-p02-recovery-800"
+    },
+    {
+      "pair": 8,
+      "condition": "recovery-800",
+      "hold_ms": 835,
+      "buffer_kib": 256,
+      "mode": "probe",
+      "phase": "a3",
+      "role": "original",
+      "id": "kab-a3-p08-recovery-800"
+    },
+    {
+      "pair": 6,
+      "condition": "recovery-200",
+      "hold_ms": 184,
+      "buffer_kib": 256,
+      "mode": "probe",
+      "phase": "a3",
+      "role": "original",
+      "id": "kab-a3-p06-recovery-200"
+    },
+    {
+      "pair": 1,
+      "condition": "steady-256",
+      "hold_ms": 0,
+      "buffer_kib": 256,
+      "mode": "steady",
+      "phase": "a3",
+      "role": "original",
+      "id": "kab-a3-p01-steady-256"
+    },
+    {
+      "pair": 4,
+      "condition": "pinned-256",
+      "hold_ms": 0,
+      "buffer_kib": 256,
+      "mode": "steady",
+      "phase": "a3",
+      "role": "original",
+      "id": "kab-a3-p04-pinned-256"
+    },
+    {
+      "pair": 5,
+      "condition": "recovery-800",
+      "hold_ms": 835,
+      "buffer_kib": 256,
+      "mode": "probe",
+      "phase": "a3",
+      "role": "original",
+      "id": "kab-a3-p05-recovery-800"
+    },
+    {
+      "pair": 4,
+      "condition": "bursty-1024",
+      "hold_ms": 0,
+      "buffer_kib": 1024,
+      "mode": "bursty",
+      "phase": "a3",
+      "role": "original",
+      "id": "kab-a3-p04-bursty-1024"
+    },
+    {
+      "pair": 2,
+      "condition": "bursty-256",
+      "hold_ms": 0,
+      "buffer_kib": 256,
+      "mode": "bursty",
+      "phase": "a3",
+      "role": "original",
+      "id": "kab-a3-p02-bursty-256"
+    },
+    {
+      "pair": 3,
+      "condition": "recovery-800",
+      "hold_ms": 835,
+      "buffer_kib": 256,
+      "mode": "probe",
+      "phase": "a3",
+      "role": "original",
+      "id": "kab-a3-p03-recovery-800"
+    },
+    {
+      "pair": 4,
+      "condition": "recovery-200",
+      "hold_ms": 250,
+      "buffer_kib": 256,
+      "mode": "probe",
+      "phase": "a3",
+      "role": "original",
+      "id": "kab-a3-p04-recovery-200"
+    },
+    {
+      "pair": 3,
+      "condition": "bursty-1024",
+      "hold_ms": 0,
+      "buffer_kib": 1024,
+      "mode": "bursty",
+      "phase": "a3",
+      "role": "original",
+      "id": "kab-a3-p03-bursty-1024"
+    },
+    {
+      "pair": 1,
+      "condition": "pinned-256",
+      "hold_ms": 0,
+      "buffer_kib": 256,
+      "mode": "steady",
+      "phase": "a3",
+      "role": "original",
+      "id": "kab-a3-p01-pinned-256"
+    },
+    {
+      "pair": 7,
+      "condition": "recovery-200",
+      "hold_ms": 166,
+      "buffer_kib": 256,
+      "mode": "probe",
+      "phase": "a3",
+      "role": "original",
+      "id": "kab-a3-p07-recovery-200"
+    },
+    {
+      "pair": 4,
+      "condition": "recovery-800",
+      "hold_ms": 835,
+      "buffer_kib": 256,
+      "mode": "probe",
+      "phase": "a3",
+      "role": "original",
+      "id": "kab-a3-p04-recovery-800"
+    },
+    {
+      "pair": 6,
+      "condition": "recovery-800",
+      "hold_ms": 835,
+      "buffer_kib": 256,
+      "mode": "probe",
+      "phase": "a3",
+      "role": "original",
+      "id": "kab-a3-p06-recovery-800"
+    },
+    {
+      "pair": 1,
+      "condition": "bursty-256",
+      "hold_ms": 0,
+      "buffer_kib": 256,
+      "mode": "bursty",
+      "phase": "a3",
+      "role": "original",
+      "id": "kab-a3-p01-bursty-256"
+    },
+    {
+      "pair": 3,
+      "condition": "bursty-64",
+      "hold_ms": 0,
+      "buffer_kib": 64,
+      "mode": "bursty",
+      "phase": "a3",
+      "role": "original",
+      "id": "kab-a3-p03-bursty-64"
+    },
+    {
+      "pair": 4,
+      "condition": "steady-256",
+      "hold_ms": 0,
+      "buffer_kib": 256,
+      "mode": "steady",
+      "phase": "a3",
+      "role": "original",
+      "id": "kab-a3-p04-steady-256"
+    },
+    {
+      "pair": 3,
+      "condition": "bursty-256",
+      "hold_ms": 0,
+      "buffer_kib": 256,
+      "mode": "bursty",
+      "phase": "a3",
+      "role": "original",
+      "id": "kab-a3-p03-bursty-256"
+    },
+    {
+      "pair": 3,
+      "condition": "recovery-200",
+      "hold_ms": 191,
+      "buffer_kib": 256,
+      "mode": "probe",
+      "phase": "a3",
+      "role": "original",
+      "id": "kab-a3-p03-recovery-200"
+    },
+    {
+      "pair": 3,
+      "condition": "steady-256",
+      "hold_ms": 0,
+      "buffer_kib": 256,
+      "mode": "steady",
+      "phase": "a3",
+      "role": "original",
+      "id": "kab-a3-p03-steady-256"
+    },
+    {
+      "pair": 2,
+      "condition": "bursty-64",
+      "hold_ms": 0,
+      "buffer_kib": 64,
+      "mode": "bursty",
+      "phase": "a3",
+      "role": "original",
+      "id": "kab-a3-p02-bursty-64"
+    },
+    {
+      "pair": 4,
+      "condition": "bursty-64",
+      "hold_ms": 0,
+      "buffer_kib": 64,
+      "mode": "bursty",
+      "phase": "a3",
+      "role": "original",
+      "id": "kab-a3-p04-bursty-64"
+    },
+    {
+      "pair": 5,
+      "condition": "recovery-200",
+      "hold_ms": 143,
+      "buffer_kib": 256,
+      "mode": "probe",
+      "phase": "a3",
+      "role": "original",
+      "id": "kab-a3-p05-recovery-200"
+    },
+    {
+      "pair": 2,
+      "condition": "recovery-200",
+      "hold_ms": 257,
+      "buffer_kib": 256,
+      "mode": "probe",
+      "phase": "a3",
+      "role": "original",
+      "id": "kab-a3-p02-recovery-200"
+    },
+    {
+      "pair": 7,
+      "condition": "recovery-800",
+      "hold_ms": 835,
+      "buffer_kib": 256,
+      "mode": "probe",
+      "phase": "a3",
+      "role": "original",
+      "id": "kab-a3-p07-recovery-800"
+    },
+    {
+      "pair": 2,
+      "condition": "steady-256",
+      "hold_ms": 0,
+      "buffer_kib": 256,
+      "mode": "steady",
+      "phase": "a3",
+      "role": "original",
+      "id": "kab-a3-p02-steady-256"
+    },
+    {
+      "pair": 1,
+      "condition": "bursty-64",
+      "hold_ms": 0,
+      "buffer_kib": 64,
+      "mode": "bursty",
+      "phase": "a3",
+      "role": "original",
+      "id": "kab-a3-p01-bursty-64"
+    },
+    {
+      "pair": 2,
+      "condition": "pinned-256",
+      "hold_ms": 0,
+      "buffer_kib": 256,
+      "mode": "steady",
+      "phase": "a3",
+      "role": "original",
+      "id": "kab-a3-p02-pinned-256"
+    },
+    {
+      "pair": 1,
+      "condition": "recovery-200",
+      "hold_ms": 190,
+      "buffer_kib": 256,
+      "mode": "probe",
+      "phase": "a3",
+      "role": "original",
+      "id": "kab-a3-p01-recovery-200"
+    }
+  ],
+  "gates": {
+    "recovery_200_median_ratio_max": 0.9,
+    "recovery_835_max_increase_ms": 1.0,
+    "ordinary_host_cpu_median_paired_ratio_max": 1.05,
+    "ordinary_wall_median_paired_ratio_max": 1.05
+  },
+  "analysis": "B1 must independently pass against A1 and A2; B2 against A2 and A3. Match condition and pair/hold. Never pool away a failed boot. Report all raw values, medians, maxima and missing responses.",
+  "response_metric": "Time from the start of sequential affinity widening to the start of sampled four-CPU coverage lasting at least50ms; the50ms confirmation window is not added to response time",
+  "cpu_metric": "Windows VirtualBox process kernel plus user CPU-time delta; compare median of matched per-trial ratios",
+  "kernel_provenance": "Original is the previously preserved project baseline image, not freshly rebuilt upstream in this experiment",
+  "fixed_minimum_processor_performance_ac_and_dc": {
+    "PROCTHROTTLEMIN": 5,
+    "PROCTHROTTLEMIN1": 5
+  },
+  "guest_sched_schedstats": 1,
+  "guest_tracing": "nop, no enabled events",
+  "modified_kernel_controls": {
+    "rebalance": 1,
+    "retry": 0,
+    "pull": 1,
+    "push": 1,
+    "idle_force": 1,
+    "idle_poll": 0,
+    "wake_retry": 0,
+    "local_first": 1,
+    "idle_recheck": 1,
+    "trim_fanout": 1
+  }
+}

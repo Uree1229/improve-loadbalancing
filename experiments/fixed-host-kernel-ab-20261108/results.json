@@ -1,0 +1,686 @@
+{
+  "date": "2026-11-08",
+  "formal_trials": 180,
+  "checksum_outputs_checked": 215,
+  "independent_host_records": 360,
+  "fresh_boots": 5,
+  "candidate_boots": 2,
+  "host_monitor_samples": 306,
+  "host_monitor_period_s": 5,
+  "max_observed_host_monitor_gap_s": 7.719,
+  "validation_pass": true,
+  "all_boot_comparisons_pass": true,
+  "checks": {
+    "b1-vs-a1/recovery-200": true,
+    "b1-vs-a1/bursty-256/wall": true,
+    "b1-vs-a1/bursty-256/host-cpu": true,
+    "b1-vs-a1/recovery-800": true,
+    "b1-vs-a1/pinned-256/wall": true,
+    "b1-vs-a1/pinned-256/host-cpu": true,
+    "b1-vs-a1/bursty-1024/wall": true,
+    "b1-vs-a1/bursty-1024/host-cpu": true,
+    "b1-vs-a1/steady-256/wall": true,
+    "b1-vs-a1/steady-256/host-cpu": true,
+    "b1-vs-a1/bursty-64/wall": true,
+    "b1-vs-a1/bursty-64/host-cpu": true,
+    "b1-vs-a2/recovery-200": true,
+    "b1-vs-a2/bursty-256/wall": true,
+    "b1-vs-a2/bursty-256/host-cpu": true,
+    "b1-vs-a2/recovery-800": true,
+    "b1-vs-a2/pinned-256/wall": true,
+    "b1-vs-a2/pinned-256/host-cpu": true,
+    "b1-vs-a2/bursty-1024/wall": true,
+    "b1-vs-a2/bursty-1024/host-cpu": true,
+    "b1-vs-a2/steady-256/wall": true,
+    "b1-vs-a2/steady-256/host-cpu": true,
+    "b1-vs-a2/bursty-64/wall": true,
+    "b1-vs-a2/bursty-64/host-cpu": true,
+    "b2-vs-a2/recovery-200": true,
+    "b2-vs-a2/bursty-256/wall": true,
+    "b2-vs-a2/bursty-256/host-cpu": true,
+    "b2-vs-a2/recovery-800": true,
+    "b2-vs-a2/pinned-256/wall": true,
+    "b2-vs-a2/pinned-256/host-cpu": true,
+    "b2-vs-a2/bursty-1024/wall": true,
+    "b2-vs-a2/bursty-1024/host-cpu": true,
+    "b2-vs-a2/steady-256/wall": true,
+    "b2-vs-a2/steady-256/host-cpu": true,
+    "b2-vs-a2/bursty-64/wall": true,
+    "b2-vs-a2/bursty-64/host-cpu": true,
+    "b2-vs-a3/recovery-200": true,
+    "b2-vs-a3/bursty-256/wall": true,
+    "b2-vs-a3/bursty-256/host-cpu": true,
+    "b2-vs-a3/recovery-800": true,
+    "b2-vs-a3/pinned-256/wall": true,
+    "b2-vs-a3/pinned-256/host-cpu": true,
+    "b2-vs-a3/bursty-1024/wall": true,
+    "b2-vs-a3/bursty-1024/host-cpu": true,
+    "b2-vs-a3/steady-256/wall": true,
+    "b2-vs-a3/steady-256/host-cpu": true,
+    "b2-vs-a3/bursty-64/wall": true,
+    "b2-vs-a3/bursty-64/host-cpu": true
+  },
+  "boots": [
+    {
+      "phase": "a1",
+      "role": "original",
+      "conditions": {
+        "recovery-200": {
+          "samples": 8,
+          "metric": "inclusive_response_ms",
+          "median": 80.4777685,
+          "maximum": 206.578377,
+          "median_host_vm_cpu_s": 11.28125
+        },
+        "bursty-256": {
+          "samples": 4,
+          "metric": "elapsed_s",
+          "median": 4.268776390999999,
+          "maximum": 4.364320219,
+          "median_host_vm_cpu_s": 11.65625
+        },
+        "recovery-800": {
+          "samples": 8,
+          "metric": "inclusive_response_ms",
+          "median": 150.102708,
+          "maximum": 295.132686,
+          "median_host_vm_cpu_s": 11.140625
+        },
+        "pinned-256": {
+          "samples": 4,
+          "metric": "elapsed_s",
+          "median": 9.8328517955,
+          "maximum": 10.815786867,
+          "median_host_vm_cpu_s": 10.1796875
+        },
+        "bursty-1024": {
+          "samples": 4,
+          "metric": "elapsed_s",
+          "median": 7.6711949975,
+          "maximum": 8.254097838,
+          "median_host_vm_cpu_s": 27.6171875
+        },
+        "steady-256": {
+          "samples": 4,
+          "metric": "elapsed_s",
+          "median": 3.037308775,
+          "maximum": 3.065664383,
+          "median_host_vm_cpu_s": 11.359375
+        },
+        "bursty-64": {
+          "samples": 4,
+          "metric": "elapsed_s",
+          "median": 3.6898863185,
+          "maximum": 3.771552628,
+          "median_host_vm_cpu_s": 8.375
+        }
+      }
+    },
+    {
+      "phase": "b1",
+      "role": "modified",
+      "conditions": {
+        "recovery-200": {
+          "samples": 8,
+          "metric": "inclusive_response_ms",
+          "median": 2.0236155,
+          "maximum": 2.367622,
+          "median_host_vm_cpu_s": 11.2265625
+        },
+        "bursty-256": {
+          "samples": 4,
+          "metric": "elapsed_s",
+          "median": 4.157127024999999,
+          "maximum": 4.633210293,
+          "median_host_vm_cpu_s": 11.703125
+        },
+        "recovery-800": {
+          "samples": 8,
+          "metric": "inclusive_response_ms",
+          "median": 1.9974345,
+          "maximum": 2.445842,
+          "median_host_vm_cpu_s": 11.0703125
+        },
+        "pinned-256": {
+          "samples": 4,
+          "metric": "elapsed_s",
+          "median": 9.777200726,
+          "maximum": 9.837856536,
+          "median_host_vm_cpu_s": 10.0078125
+        },
+        "bursty-1024": {
+          "samples": 4,
+          "metric": "elapsed_s",
+          "median": 7.6112237335,
+          "maximum": 8.50572752,
+          "median_host_vm_cpu_s": 27.546875
+        },
+        "steady-256": {
+          "samples": 4,
+          "metric": "elapsed_s",
+          "median": 3.1683477425,
+          "maximum": 4.109396801,
+          "median_host_vm_cpu_s": 11.4765625
+        },
+        "bursty-64": {
+          "samples": 4,
+          "metric": "elapsed_s",
+          "median": 3.71406221,
+          "maximum": 3.798190722,
+          "median_host_vm_cpu_s": 8.6328125
+        }
+      }
+    },
+    {
+      "phase": "a2",
+      "role": "original",
+      "conditions": {
+        "recovery-200": {
+          "samples": 8,
+          "metric": "inclusive_response_ms",
+          "median": 85.444953,
+          "maximum": 139.391479,
+          "median_host_vm_cpu_s": 11.171875
+        },
+        "bursty-256": {
+          "samples": 4,
+          "metric": "elapsed_s",
+          "median": 4.180721784999999,
+          "maximum": 4.446544592,
+          "median_host_vm_cpu_s": 11.71875
+        },
+        "recovery-800": {
+          "samples": 8,
+          "metric": "inclusive_response_ms",
+          "median": 185.69813299999998,
+          "maximum": 261.463343,
+          "median_host_vm_cpu_s": 11.0234375
+        },
+        "pinned-256": {
+          "samples": 4,
+          "metric": "elapsed_s",
+          "median": 9.7591886185,
+          "maximum": 9.818568032,
+          "median_host_vm_cpu_s": 10.15625
+        },
+        "bursty-1024": {
+          "samples": 4,
+          "metric": "elapsed_s",
+          "median": 7.751051457999999,
+          "maximum": 7.878545192,
+          "median_host_vm_cpu_s": 27.9921875
+        },
+        "steady-256": {
+          "samples": 4,
+          "metric": "elapsed_s",
+          "median": 3.0275193465,
+          "maximum": 4.473414008,
+          "median_host_vm_cpu_s": 11.3515625
+        },
+        "bursty-64": {
+          "samples": 4,
+          "metric": "elapsed_s",
+          "median": 3.7168640615,
+          "maximum": 3.807084533,
+          "median_host_vm_cpu_s": 8.90625
+        }
+      }
+    },
+    {
+      "phase": "b2",
+      "role": "modified",
+      "conditions": {
+        "recovery-200": {
+          "samples": 8,
+          "metric": "inclusive_response_ms",
+          "median": 1.5729899999999999,
+          "maximum": 2.0367550000000003,
+          "median_host_vm_cpu_s": 11.21875
+        },
+        "bursty-256": {
+          "samples": 4,
+          "metric": "elapsed_s",
+          "median": 4.1422841165,
+          "maximum": 4.485016808,
+          "median_host_vm_cpu_s": 11.671875
+        },
+        "recovery-800": {
+          "samples": 8,
+          "metric": "inclusive_response_ms",
+          "median": 1.6205945000000002,
+          "maximum": 2.085178,
+          "median_host_vm_cpu_s": 11.0859375
+        },
+        "pinned-256": {
+          "samples": 4,
+          "metric": "elapsed_s",
+          "median": 9.7353250575,
+          "maximum": 9.894984374,
+          "median_host_vm_cpu_s": 10.109375
+        },
+        "bursty-1024": {
+          "samples": 4,
+          "metric": "elapsed_s",
+          "median": 7.589508959,
+          "maximum": 7.637752503,
+          "median_host_vm_cpu_s": 27.2265625
+        },
+        "steady-256": {
+          "samples": 4,
+          "metric": "elapsed_s",
+          "median": 3.1418141774999997,
+          "maximum": 4.040922446,
+          "median_host_vm_cpu_s": 11.3828125
+        },
+        "bursty-64": {
+          "samples": 4,
+          "metric": "elapsed_s",
+          "median": 3.672299163,
+          "maximum": 3.812397823,
+          "median_host_vm_cpu_s": 8.5390625
+        }
+      }
+    },
+    {
+      "phase": "a3",
+      "role": "original",
+      "conditions": {
+        "recovery-200": {
+          "samples": 8,
+          "metric": "inclusive_response_ms",
+          "median": 83.57433449999999,
+          "maximum": 199.29529300000002,
+          "median_host_vm_cpu_s": 11.125
+        },
+        "bursty-256": {
+          "samples": 4,
+          "metric": "elapsed_s",
+          "median": 4.192707217000001,
+          "maximum": 4.306007437,
+          "median_host_vm_cpu_s": 11.78125
+        },
+        "recovery-800": {
+          "samples": 8,
+          "metric": "inclusive_response_ms",
+          "median": 261.971863,
+          "maximum": 293.103119,
+          "median_host_vm_cpu_s": 11.125
+        },
+        "pinned-256": {
+          "samples": 4,
+          "metric": "elapsed_s",
+          "median": 9.8249670795,
+          "maximum": 10.004622102,
+          "median_host_vm_cpu_s": 10.0546875
+        },
+        "bursty-1024": {
+          "samples": 4,
+          "metric": "elapsed_s",
+          "median": 7.9024837055,
+          "maximum": 8.226002548,
+          "median_host_vm_cpu_s": 27.9609375
+        },
+        "steady-256": {
+          "samples": 4,
+          "metric": "elapsed_s",
+          "median": 3.173523821,
+          "maximum": 3.71201348,
+          "median_host_vm_cpu_s": 11.4765625
+        },
+        "bursty-64": {
+          "samples": 4,
+          "metric": "elapsed_s",
+          "median": 3.699164803,
+          "maximum": 3.911807106,
+          "median_host_vm_cpu_s": 9.0859375
+        }
+      }
+    }
+  ],
+  "paired_comparisons": {
+    "b1-vs-a1": {
+      "recovery-200": {
+        "original_median": 80.4777685,
+        "modified_median": 2.0236155,
+        "original_max": 206.578377,
+        "modified_max": 2.367622,
+        "median_paired_host_cpu_ratio": 0.9897512951043932,
+        "original_median_host_cpu_s": 11.28125,
+        "modified_median_host_cpu_s": 11.2265625,
+        "original_median_guest_cpu_s": 11.966721708999998,
+        "modified_median_guest_cpu_s": 11.9340193585,
+        "median_latency_ratio": 0.025145024989106153
+      },
+      "bursty-256": {
+        "original_median": 4.268776390999999,
+        "modified_median": 4.157127024999999,
+        "original_max": 4.364320219,
+        "modified_max": 4.633210293,
+        "median_paired_host_cpu_ratio": 1.0086738364310237,
+        "original_median_host_cpu_s": 11.65625,
+        "modified_median_host_cpu_s": 11.703125,
+        "original_median_guest_cpu_s": 11.975698277,
+        "modified_median_guest_cpu_s": 11.8610022545,
+        "median_paired_wall_ratio": 0.9929862312986898
+      },
+      "recovery-800": {
+        "original_median": 150.102708,
+        "modified_median": 1.9974345,
+        "original_max": 295.132686,
+        "modified_max": 2.445842,
+        "median_paired_host_cpu_ratio": 0.9957805907172996,
+        "original_median_host_cpu_s": 11.140625,
+        "modified_median_host_cpu_s": 11.0703125,
+        "original_median_guest_cpu_s": 11.723814077,
+        "modified_median_guest_cpu_s": 11.844631635999999
+      },
+      "pinned-256": {
+        "original_median": 9.8328517955,
+        "modified_median": 9.777200726,
+        "original_max": 10.815786867,
+        "modified_max": 9.837856536,
+        "median_paired_host_cpu_ratio": 0.9854151058085128,
+        "original_median_host_cpu_s": 10.1796875,
+        "modified_median_host_cpu_s": 10.0078125,
+        "original_median_guest_cpu_s": 9.824955645,
+        "modified_median_guest_cpu_s": 9.769826862999999,
+        "median_paired_wall_ratio": 0.9933278715170816
+      },
+      "bursty-1024": {
+        "original_median": 7.6711949975,
+        "modified_median": 7.6112237335,
+        "original_max": 8.254097838,
+        "modified_max": 8.50572752,
+        "median_paired_host_cpu_ratio": 1.0011520510058747,
+        "original_median_host_cpu_s": 27.6171875,
+        "modified_median_host_cpu_s": 27.546875,
+        "original_median_guest_cpu_s": 29.551775265500005,
+        "modified_median_guest_cpu_s": 29.602685053499997,
+        "median_paired_wall_ratio": 1.0003899614360081
+      },
+      "steady-256": {
+        "original_median": 3.037308775,
+        "modified_median": 3.1683477425,
+        "original_max": 3.065664383,
+        "modified_max": 4.109396801,
+        "median_paired_host_cpu_ratio": 1.0110957004160888,
+        "original_median_host_cpu_s": 11.359375,
+        "modified_median_host_cpu_s": 11.4765625,
+        "original_median_guest_cpu_s": 12.073701657500001,
+        "modified_median_guest_cpu_s": 12.624829817999998,
+        "median_paired_wall_ratio": 1.0377497876508655
+      },
+      "bursty-64": {
+        "original_median": 3.6898863185,
+        "modified_median": 3.71406221,
+        "original_max": 3.771552628,
+        "modified_max": 3.798190722,
+        "median_paired_host_cpu_ratio": 1.0308689674376512,
+        "original_median_host_cpu_s": 8.375,
+        "modified_median_host_cpu_s": 8.6328125,
+        "original_median_guest_cpu_s": 8.4193564205,
+        "modified_median_guest_cpu_s": 8.551024289499999,
+        "median_paired_wall_ratio": 1.0059590465906654
+      }
+    },
+    "b1-vs-a2": {
+      "recovery-200": {
+        "original_median": 85.444953,
+        "modified_median": 2.0236155,
+        "original_max": 139.391479,
+        "modified_max": 2.367622,
+        "median_paired_host_cpu_ratio": 1.0020891284191005,
+        "original_median_host_cpu_s": 11.171875,
+        "modified_median_host_cpu_s": 11.2265625,
+        "original_median_guest_cpu_s": 11.870754658,
+        "modified_median_guest_cpu_s": 11.9340193585,
+        "median_latency_ratio": 0.023683265411826023
+      },
+      "bursty-256": {
+        "original_median": 4.180721784999999,
+        "modified_median": 4.157127024999999,
+        "original_max": 4.446544592,
+        "modified_max": 4.633210293,
+        "median_paired_host_cpu_ratio": 1.0036625115623485,
+        "original_median_host_cpu_s": 11.71875,
+        "modified_median_host_cpu_s": 11.703125,
+        "original_median_guest_cpu_s": 11.977680559,
+        "modified_median_guest_cpu_s": 11.8610022545,
+        "median_paired_wall_ratio": 0.9995988223539991
+      },
+      "recovery-800": {
+        "original_median": 185.69813299999998,
+        "modified_median": 1.9974345,
+        "original_max": 261.463343,
+        "modified_max": 2.445842,
+        "median_paired_host_cpu_ratio": 1.0105763740931055,
+        "original_median_host_cpu_s": 11.0234375,
+        "modified_median_host_cpu_s": 11.0703125,
+        "original_median_guest_cpu_s": 11.6530198185,
+        "modified_median_guest_cpu_s": 11.844631635999999
+      },
+      "pinned-256": {
+        "original_median": 9.7591886185,
+        "modified_median": 9.777200726,
+        "original_max": 9.818568032,
+        "modified_max": 9.837856536,
+        "median_paired_host_cpu_ratio": 0.9853595823332075,
+        "original_median_host_cpu_s": 10.15625,
+        "modified_median_host_cpu_s": 10.0078125,
+        "original_median_guest_cpu_s": 9.751833551,
+        "modified_median_guest_cpu_s": 9.769826862999999,
+        "median_paired_wall_ratio": 1.0030569331452057
+      },
+      "bursty-1024": {
+        "original_median": 7.751051457999999,
+        "modified_median": 7.6112237335,
+        "original_max": 7.878545192,
+        "modified_max": 8.50572752,
+        "median_paired_host_cpu_ratio": 0.9815470433039912,
+        "original_median_host_cpu_s": 27.9921875,
+        "modified_median_host_cpu_s": 27.546875,
+        "original_median_guest_cpu_s": 29.910521629,
+        "modified_median_guest_cpu_s": 29.602685053499997,
+        "median_paired_wall_ratio": 0.9798629263634446
+      },
+      "steady-256": {
+        "original_median": 3.0275193465,
+        "modified_median": 3.1683477425,
+        "original_max": 4.473414008,
+        "modified_max": 4.109396801,
+        "median_paired_host_cpu_ratio": 0.9979196665403562,
+        "original_median_host_cpu_s": 11.3515625,
+        "modified_median_host_cpu_s": 11.4765625,
+        "original_median_guest_cpu_s": 11.9885139005,
+        "modified_median_guest_cpu_s": 12.624829817999998,
+        "median_paired_wall_ratio": 1.0229101368189557
+      },
+      "bursty-64": {
+        "original_median": 3.7168640615,
+        "modified_median": 3.71406221,
+        "original_max": 3.807084533,
+        "modified_max": 3.798190722,
+        "median_paired_host_cpu_ratio": 0.9952536905480109,
+        "original_median_host_cpu_s": 8.90625,
+        "modified_median_host_cpu_s": 8.6328125,
+        "original_median_guest_cpu_s": 8.482509670499999,
+        "modified_median_guest_cpu_s": 8.551024289499999,
+        "median_paired_wall_ratio": 0.9982195416358921
+      }
+    },
+    "b2-vs-a2": {
+      "recovery-200": {
+        "original_median": 85.444953,
+        "modified_median": 1.5729899999999999,
+        "original_max": 139.391479,
+        "modified_max": 2.0367550000000003,
+        "median_paired_host_cpu_ratio": 1.0070422535211268,
+        "original_median_host_cpu_s": 11.171875,
+        "modified_median_host_cpu_s": 11.21875,
+        "original_median_guest_cpu_s": 11.870754658,
+        "modified_median_guest_cpu_s": 12.0322001845,
+        "median_latency_ratio": 0.018409396281135526
+      },
+      "bursty-256": {
+        "original_median": 4.180721784999999,
+        "modified_median": 4.1422841165,
+        "original_max": 4.446544592,
+        "modified_max": 4.485016808,
+        "median_paired_host_cpu_ratio": 0.9914698162729658,
+        "original_median_host_cpu_s": 11.71875,
+        "modified_median_host_cpu_s": 11.671875,
+        "original_median_guest_cpu_s": 11.977680559,
+        "modified_median_guest_cpu_s": 12.030528937,
+        "median_paired_wall_ratio": 0.9912163190271845
+      },
+      "recovery-800": {
+        "original_median": 185.69813299999998,
+        "modified_median": 1.6205945000000002,
+        "original_max": 261.463343,
+        "modified_max": 2.085178,
+        "median_paired_host_cpu_ratio": 1.0071225649350648,
+        "original_median_host_cpu_s": 11.0234375,
+        "modified_median_host_cpu_s": 11.0859375,
+        "original_median_guest_cpu_s": 11.6530198185,
+        "modified_median_guest_cpu_s": 11.7654740465
+      },
+      "pinned-256": {
+        "original_median": 9.7591886185,
+        "modified_median": 9.7353250575,
+        "original_max": 9.818568032,
+        "modified_max": 9.894984374,
+        "median_paired_host_cpu_ratio": 0.9953822083253204,
+        "original_median_host_cpu_s": 10.15625,
+        "modified_median_host_cpu_s": 10.109375,
+        "original_median_guest_cpu_s": 9.751833551,
+        "modified_median_guest_cpu_s": 9.723083210999999,
+        "median_paired_wall_ratio": 0.9966883413421682
+      },
+      "bursty-1024": {
+        "original_median": 7.751051457999999,
+        "modified_median": 7.589508959,
+        "original_max": 7.878545192,
+        "modified_max": 7.637752503,
+        "median_paired_host_cpu_ratio": 0.9735089488506463,
+        "original_median_host_cpu_s": 27.9921875,
+        "modified_median_host_cpu_s": 27.2265625,
+        "original_median_guest_cpu_s": 29.910521629,
+        "modified_median_guest_cpu_s": 29.337406463500002,
+        "median_paired_wall_ratio": 0.9791556499436
+      },
+      "steady-256": {
+        "original_median": 3.0275193465,
+        "modified_median": 3.1418141774999997,
+        "original_max": 4.473414008,
+        "modified_max": 4.040922446,
+        "median_paired_host_cpu_ratio": 0.9986178476695717,
+        "original_median_host_cpu_s": 11.3515625,
+        "modified_median_host_cpu_s": 11.3828125,
+        "original_median_guest_cpu_s": 11.9885139005,
+        "modified_median_guest_cpu_s": 12.457769536499999,
+        "median_paired_wall_ratio": 1.0002554592728126
+      },
+      "bursty-64": {
+        "original_median": 3.7168640615,
+        "modified_median": 3.672299163,
+        "original_max": 3.807084533,
+        "modified_max": 3.812397823,
+        "median_paired_host_cpu_ratio": 0.99136329805102,
+        "original_median_host_cpu_s": 8.90625,
+        "modified_median_host_cpu_s": 8.5390625,
+        "original_median_guest_cpu_s": 8.482509670499999,
+        "modified_median_guest_cpu_s": 8.461279863,
+        "median_paired_wall_ratio": 0.9914507743999634
+      }
+    },
+    "b2-vs-a3": {
+      "recovery-200": {
+        "original_median": 83.57433449999999,
+        "modified_median": 1.5729899999999999,
+        "original_max": 199.29529300000002,
+        "modified_max": 2.0367550000000003,
+        "median_paired_host_cpu_ratio": 1.0070761511499495,
+        "original_median_host_cpu_s": 11.125,
+        "modified_median_host_cpu_s": 11.21875,
+        "original_median_guest_cpu_s": 11.911636584499998,
+        "modified_median_guest_cpu_s": 12.0322001845,
+        "median_latency_ratio": 0.018821448108569745
+      },
+      "bursty-256": {
+        "original_median": 4.192707217000001,
+        "modified_median": 4.1422841165,
+        "original_max": 4.306007437,
+        "modified_max": 4.485016808,
+        "median_paired_host_cpu_ratio": 1.0006720357749137,
+        "original_median_host_cpu_s": 11.78125,
+        "modified_median_host_cpu_s": 11.671875,
+        "original_median_guest_cpu_s": 11.945547626999998,
+        "modified_median_guest_cpu_s": 12.030528937,
+        "median_paired_wall_ratio": 1.0006044685823325
+      },
+      "recovery-800": {
+        "original_median": 261.971863,
+        "modified_median": 1.6205945000000002,
+        "original_max": 293.103119,
+        "modified_max": 2.085178,
+        "median_paired_host_cpu_ratio": 0.9951166976483432,
+        "original_median_host_cpu_s": 11.125,
+        "modified_median_host_cpu_s": 11.0859375,
+        "original_median_guest_cpu_s": 11.749411994999999,
+        "modified_median_guest_cpu_s": 11.7654740465
+      },
+      "pinned-256": {
+        "original_median": 9.8249670795,
+        "modified_median": 9.7353250575,
+        "original_max": 10.004622102,
+        "modified_max": 9.894984374,
+        "median_paired_host_cpu_ratio": 1.0078003309968846,
+        "original_median_host_cpu_s": 10.0546875,
+        "modified_median_host_cpu_s": 10.109375,
+        "original_median_guest_cpu_s": 9.8154363765,
+        "modified_median_guest_cpu_s": 9.723083210999999,
+        "median_paired_wall_ratio": 0.9902207262774239
+      },
+      "bursty-1024": {
+        "original_median": 7.9024837055,
+        "modified_median": 7.589508959,
+        "original_max": 8.226002548,
+        "modified_max": 7.637752503,
+        "median_paired_host_cpu_ratio": 0.9710265790119278,
+        "original_median_host_cpu_s": 27.9609375,
+        "modified_median_host_cpu_s": 27.2265625,
+        "original_median_guest_cpu_s": 29.772852262999997,
+        "modified_median_guest_cpu_s": 29.337406463500002,
+        "median_paired_wall_ratio": 0.947214453978713
+      },
+      "steady-256": {
+        "original_median": 3.173523821,
+        "modified_median": 3.1418141774999997,
+        "original_max": 3.71201348,
+        "modified_max": 4.040922446,
+        "median_paired_host_cpu_ratio": 0.9972828400754599,
+        "original_median_host_cpu_s": 11.4765625,
+        "modified_median_host_cpu_s": 11.3828125,
+        "original_median_guest_cpu_s": 12.531153291999999,
+        "modified_median_guest_cpu_s": 12.457769536499999,
+        "median_paired_wall_ratio": 0.9956909827003158
+      },
+      "bursty-64": {
+        "original_median": 3.699164803,
+        "modified_median": 3.672299163,
+        "original_max": 3.911807106,
+        "modified_max": 3.812397823,
+        "median_paired_host_cpu_ratio": 0.9374370623985594,
+        "original_median_host_cpu_s": 9.0859375,
+        "modified_median_host_cpu_s": 8.5390625,
+        "original_median_guest_cpu_s": 8.5708174645,
+        "modified_median_guest_cpu_s": 8.461279863,
+        "median_paired_wall_ratio": 0.9890539833557255
+      }
+    }
+  },
+  "source_protocol_sha256": "bd51c7dbd79e0a2819de278bad012c9537b790b8150963f84b3ac249a93b0a10",
+  "source_comparison_sha256": "921dfbfa8c5de7076512650e77d66bde2040a45eb97b2d3150be973516256873",
+  "source_raw_archive_sha256": "7bc732cfd3fc4a37336aa26d8e0c9a31c186522efbe7962394892e23b35d6a1b",
+  "scope": "Preserved project baseline versus v18 under one fixed v23 host policy; exploratory replication on this VM"
+}
