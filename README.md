@@ -1,6 +1,21 @@
 # Linux CPU Load Balancing Experiments
 
-Linux **5.4.214** 기반 CPU 로드밸런싱 개선 후보 **v1~v18**의 커널 소스와 패치, **v19~v24**의 호스트 설정을 보관한다. CPU affinity 제한이 풀렸을 때 분산 복구를 앞당기는 접근과 task hotness 판단 변경을 다룬다.
+Linux **5.4.214** 기반 CPU 로드밸런싱 개선 후보 **v1~v18 및 v6.1~v6.5**의 커널 소스와 패치, **v19~v24**의 호스트 설정을 보관한다. CPU affinity 제한이 풀렸을 때 분산 복구를 앞당기는 접근과 task hotness 판단 변경을 다룬다.
+
+## 최신 실험 v6.5
+
+**v6.5는 채택 보류다.** v6의 복구 경로에 16ms 동안 적용하는 동적 hot 완화를 더했지만, 새 부팅 두 번의 **512회(성능 448회·별도 계측 64회)** 비교에서 목표한 추가 개선을 입증하지 못했다. 같은 커널 이미지 안에서 v6·v6.2·v6.4·v6.5 정책을 교차 비교했다.
+
+| 측정 | 첫 부팅 | 두 번째 부팅 |
+|---|---:|---:|
+| 200ms 복구 중앙값, v6 → v6.5 | 4.891 → 7.583 ms | 5.719 → 7.289 ms |
+| 800ms 복구 중앙값, v6.2 → v6.5 | 1.871 → 2.536 ms | 2.378 → 2.564 ms |
+| 800ms 관측 최댓값, v6.2 → v6.5 | 14.361 → 63.401 ms | 3.077 → 59.472 ms |
+| pinned-256 작업자 CPU 시간, v6 → v6.5 | 10.341 → 10.314 s | 10.401 → 10.606 s |
+
+별도 v6.5 복구 계측 12회에서 임계값은 58회 낮아졌지만 hot→cold 판정 변경은 **0회**였다. 관찰된 시간 차이를 hot 완화 효과로 확정할 근거가 부족하다. 이 표는 해제 완료 후 CPU 표본상 최초 분산 지연과 **게스트 작업자 CPU 시간**을 사용한다. 아래 과거 그래프의 해제 시작 기준 지연·Windows VM CPU 시간과 직접 합산하지 않는다. v6 정책에도 기존 affinity 복구 기능이 포함돼 있다.
+
+[v6.5 코드와 제어](versions/v6.5/) · [전체 결과와 한계](versions/v6.5/RESULTS.md) · [v6.1~v6.3 738회](experiments/v6-hot-separate-boots-20261123/) · [v6.4 357회](experiments/v6-hot-affinity-only-20261125/)
 
 ## 성능 비교
 
@@ -55,6 +70,11 @@ Linux **5.4.214** 기반 CPU 로드밸런싱 개선 후보 **v1~v18**의 커널 
 | [v4](versions/v4/) | pinned backoff 상한 축소 |
 | [v5](versions/v5/) | affinity 확장 때 NOHZ 요청 |
 | [v6](versions/v6/) | 대상 CPU irq_work와 로컬 복구 요청 |
+| [v6.1](versions/v6.1/) | newly-idle에서 hot 임계값을 절반으로 축소 |
+| [v6.2](versions/v6.2/) | newly-idle에서 CFS 작업 수에 따라 hot 임계값을 절반 또는 4분의 1로 축소 |
+| [v6.3](versions/v6.3/) | newly-idle에서 CFS 작업이 3개 이상일 때 hot 임계값을 25% 축소 |
+| [v6.4](versions/v6.4/) | affinity 확장으로 요청된 CPU_IDLE 재분산에만 hot 완화 적용 |
+| [v6.5](versions/v6.5/) | affinity 확장 후 원래 runqueue의 16ms 구간에서 idle 목적지에 hot 완화 적용 |
 | [v7](versions/v7/) | 일반 루프 특수화와 cold handler 분리 |
 | [v8](versions/v8/) | 별도 tasklet으로 복구 경로 분리 |
 | [v9](versions/v9/) | 기본 OFF sysctl과 같은 이미지 내 기능 제어 |
@@ -85,6 +105,8 @@ v19~v24는 v18 게스트 커널을 사용한다. 각 커널 `changes.patch`는 �
 - [비교용 C 프로그램](benchmarks/src/lb_bench.c)
 - [affinity 복구 probe](benchmarks/src/lb_affinity_probe.c)
 - [버전별 파일 해시](versions/manifest.json)
+
+v6.1~v6.5의 `changes.patch`도 공통 원본에 독립 적용한다. 별도 `changes-from-v6.patch`는 v6 소스에만 적용한다.
 
 `baseline/`은 변경 대상 원본 파일이다. v1~v4는 보존된 원본과 패치에서 복원했고 v5~v18은 보존된 후보 소스와 일치한다. `python3 tools/verify_versions.py`로 모든 버전의 독립 패치와 스냅샷을 확인할 수 있다.
 

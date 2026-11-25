@@ -1,0 +1,72 @@
+--- a/kernel/sched/fair.c
++++ b/kernel/sched/fair.c
+@@ -7173,6 +7173,7 @@
+ 	struct cpumask		*dst_grpmask;
+ 	int			new_dst_cpu;
+ 	enum cpu_idle_type	idle;
++	bool			affinity_reset;
+ 	long			imbalance;
+ 	/* The set of CPUs under consideration for load-balancing */
+ 	struct cpumask		*cpus;
+@@ -7194,6 +7195,7 @@
+ static int task_hot(struct task_struct *p, struct lb_env *env)
+ {
+ 	s64 delta;
++	s64 migration_cost;
+ 
+ 	lockdep_assert_held(&env->src_rq->lock);
+ 
+@@ -7218,7 +7220,16 @@
+ 
+ 	delta = rq_clock_task(env->src_rq) - p->se.exec_start;
+ 
+-	return delta < (s64)sysctl_sched_migration_cost;
++	migration_cost = sysctl_sched_migration_cost;
++	/* Only the affinity-expansion kick may relax cache-hot protection. */
++	if (env->affinity_reset && env->idle == CPU_IDLE) {
++		if (env->src_rq->cfs.h_nr_running > 2)
++			migration_cost /= 4;
++		else if (env->src_rq->cfs.h_nr_running > 1)
++			migration_cost /= 2;
++	}
++
++	return delta < migration_cost;
+ }
+ 
+ #ifdef CONFIG_NUMA_BALANCING
+@@ -8882,7 +8893,7 @@
+  */
+ static int load_balance(int this_cpu, struct rq *this_rq,
+ 			struct sched_domain *sd, enum cpu_idle_type idle,
+-			int *continue_balancing)
++			int *continue_balancing, bool affinity_reset)
+ {
+ 	int ld_moved, cur_ld_moved, active_balance = 0;
+ 	struct sched_domain *sd_parent = sd->parent;
+@@ -8897,6 +8908,7 @@
+ 		.dst_rq		= this_rq,
+ 		.dst_grpmask    = sched_group_span(sd->groups),
+ 		.idle		= idle,
++		.affinity_reset = affinity_reset,
+ 		.loop_break	= sched_nr_migrate_break,
+ 		.cpus		= cpus,
+ 		.fbq_type	= all,
+@@ -9351,7 +9363,8 @@
+ 
+ 		if (affinity_reset ||
+ 		    time_after_eq(jiffies, sd->last_balance + interval)) {
+-			if (load_balance(cpu, rq, sd, idle, &continue_balancing)) {
++			if (load_balance(cpu, rq, sd, idle, &continue_balancing,
++					 affinity_reset)) {
+ 				/*
+ 				 * The LBF_DST_PINNED logic could have changed
+ 				 * env->dst_cpu, so we can't know our idle
+@@ -9999,7 +10012,7 @@
+ 
+ 			pulled_task = load_balance(this_cpu, this_rq,
+ 						   sd, CPU_NEWLY_IDLE,
+-						   &continue_balancing);
++						   &continue_balancing, false);
+ 
+ 			domain_cost = sched_clock_cpu(this_cpu) - t0;
+ 			if (domain_cost > sd->max_newidle_lb_cost)

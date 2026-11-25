@@ -1,0 +1,72 @@
+{
+  "version": "v6.5",
+  "status": "512 trials completed across two fresh boots; all results preserved and original kernel restoration verified",
+  "candidate": "16ms monotonic source-rq hot window after existing v6 affinity expansion hook",
+  "controls": {
+    "0": "v6 policy",
+    "1": "v6.2 policy",
+    "2": "v6.4 policy",
+    "3": "v6.5 policy"
+  },
+  "design": "Two fresh boots of one image; four policies counterbalanced within each condition/repeat",
+  "per_boot": {
+    "primary_trials": 224,
+    "diagnostic_trials": 32,
+    "reference_runs": 3
+  },
+  "total_comparison_trials": 512,
+  "conditions": {
+    "recovery200": {
+      "hold_ms": 200,
+      "jitter_ms": 64,
+      "repeats_per_policy_per_boot": 12
+    },
+    "recovery800": {
+      "hold_ms": 800,
+      "jitter_ms": 64,
+      "repeats_per_policy_per_boot": 12
+    },
+    "exact853": {
+      "hold_ms": 853,
+      "jitter_ms": 0,
+      "repeats_per_policy_per_boot": 12
+    },
+    "bursty64_256_1024": {
+      "repeats_per_policy_per_buffer_per_boot": 4
+    },
+    "steady256": {
+      "repeats_per_policy_per_boot": 4
+    },
+    "pinned256": {
+      "repeats_per_policy_per_boot": 4
+    }
+  },
+  "workers": 8,
+  "total_steps": 2086169180,
+  "host": "Unchanged AC power scheme/settings, VM process affinity and priority; no WPR",
+  "primary_metric": "Same-boot first_coverage_ms from unchanged worker CPU samples after release_end_ns",
+  "secondary_metrics": [
+    "coverage_50ms_start_ms",
+    "elapsed_s",
+    "sum_cpu_s",
+    "worker_migrations",
+    "worker_hot_rejects"
+  ],
+  "analysis": [
+    "Report all policies separately per boot; paired condition/repeat deltas and raw maxima",
+    "Report v6.5 against both v6 and v6.2; do not combine earlier separate-image measurements",
+    "Preserve all outliers and failed-recovery trials; no retry based on unfavorable performance",
+    "Count failed coverage explicitly; missing recovery is not dropped from a success assessment",
+    "Diagnostic-enabled trials are separate and not used for performance conclusions",
+    "Host interruptions or correctness failures invalidate the run; retain evidence and explain any restart",
+    "800ms retention assessed against v6.2 and v6; 200ms and ordinary-work regressions reported without reclassifying them as wins",
+    "Four general-work repetitions per policy per boot give limited precision; inconclusive results need further replication"
+  ],
+  "limitations": [
+    "Policy 0 still includes the existing v6 affinity kick; not an unmodified upstream kernel",
+    "Runtime controls share an instrumentable image and are not byte-identical old kernels",
+    "Coverage is sampled task location, not direct kernel migration or simultaneous execution",
+    "Hot counters are system-wide predicate evaluations, not migrations or causal proof of speedup",
+    "Source-rq window may affect other eligible tasks on that runqueue; not task-local"
+  ]
+}

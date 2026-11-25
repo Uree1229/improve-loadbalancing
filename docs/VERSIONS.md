@@ -8,6 +8,11 @@
 | [v4](../versions/v4/) | pinned backoff 상한 512에서 32로 축소 |
 | [v5](../versions/v5/) | affinity 확장 때 NOHZ 요청 |
 | [v6](../versions/v6/) | 대상 CPU irq_work와 로컬 복구 요청 |
+| [v6.1](../versions/v6.1/) | newly-idle에서 hot 임계값을 절반으로 축소 |
+| [v6.2](../versions/v6.2/) | newly-idle에서 CFS 작업 수에 따라 hot 임계값을 절반 또는 4분의 1로 축소 |
+| [v6.3](../versions/v6.3/) | newly-idle에서 CFS 작업이 3개 이상일 때 hot 임계값을 25% 축소 |
+| [v6.4](../versions/v6.4/) | affinity 확장으로 요청된 CPU_IDLE 재분산에만 hot 완화 적용 |
+| [v6.5](../versions/v6.5/) | affinity 확장 후 원래 runqueue의 16ms 구간에서 idle 목적지에 hot 완화 적용 |
 | [v7](../versions/v7/) | 일반 루프 특수화와 cold handler 분리 |
 | [v8](../versions/v8/) | 별도 tasklet으로 복구 경로 분리 |
 | [v9](../versions/v9/) | 기본 OFF sysctl로 같은 이미지 교차 비교 |
