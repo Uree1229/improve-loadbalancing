@@ -211,5 +211,60 @@
       "kernel/sched/sched.h": "8a34a359a6b6b93655dcd4f8f954ec19249412b1d30b3d6cc6213093816817d0",
       "kernel/sched/idle.c": "f0f6d926d373e036b4a083d8ff7736943e5e0ee55fa3a112d64cae5ec765d84e"
     }
+  },
+  "v6.1": {
+    "description": "newly-idle에서 hot 임계값을 절반으로 축소",
+    "patch_sha256": "b7fa7c73a930d6941d8a7536a2f2f1d06f7111dd9f501531b4cb8ca5ed78dac4",
+    "snapshot_provenance": "Preserved measured candidate fair.c; unchanged v6 core.c, sched.h and debug.c verified by SHA256.",
+    "files": {
+      "kernel/sched/core.c": "cde531417dd5098f399bcdb60bd4be3a80cc5eeffc9b768846f6d53070aeb4b3",
+      "kernel/sched/sched.h": "d2934a38d11e922539ab4999f6f6c641e8fe366adde5f069b31e71d63784b9e4",
+      "kernel/sched/debug.c": "717260abbfa58aa08776bc395a323ee468469604fdce5a0c4d72f8381f38f38e",
+      "kernel/sched/fair.c": "9775bc9884c9434095ddf4838a9881f50c870f8cb97e462ba05a7087bac6a80a"
+    }
+  },
+  "v6.2": {
+    "description": "newly-idle에서 CFS 작업 수에 따라 hot 임계값을 절반 또는 4분의 1로 축소",
+    "patch_sha256": "a3748af6a95831c13410f6defd9a3d4f94bb03827077f7f38ffa2bc77200e8c6",
+    "snapshot_provenance": "Preserved measured candidate fair.c; unchanged v6 core.c, sched.h and debug.c verified by SHA256.",
+    "files": {
+      "kernel/sched/core.c": "cde531417dd5098f399bcdb60bd4be3a80cc5eeffc9b768846f6d53070aeb4b3",
+      "kernel/sched/sched.h": "d2934a38d11e922539ab4999f6f6c641e8fe366adde5f069b31e71d63784b9e4",
+      "kernel/sched/debug.c": "717260abbfa58aa08776bc395a323ee468469604fdce5a0c4d72f8381f38f38e",
+      "kernel/sched/fair.c": "c6868f1d37f52c964f86184807f3825b8fb2114709d312987d9edb071c398d01"
+    }
+  },
+  "v6.3": {
+    "description": "newly-idle에서 CFS 작업이 3개 이상일 때 hot 임계값을 25% 축소",
+    "patch_sha256": "849348fdb81fdd23b18a6ecd3ffc8eb204c85a383664770ea6439ab7ff04d9ae",
+    "snapshot_provenance": "Preserved measured candidate fair.c; unchanged v6 core.c, sched.h and debug.c verified by SHA256.",
+    "files": {
+      "kernel/sched/core.c": "cde531417dd5098f399bcdb60bd4be3a80cc5eeffc9b768846f6d53070aeb4b3",
+      "kernel/sched/sched.h": "d2934a38d11e922539ab4999f6f6c641e8fe366adde5f069b31e71d63784b9e4",
+      "kernel/sched/debug.c": "717260abbfa58aa08776bc395a323ee468469604fdce5a0c4d72f8381f38f38e",
+      "kernel/sched/fair.c": "5516eaa4d0b02fadce4622f602bf011372cf30e5c48e9b994daf347a44f92d1d"
+    }
+  },
+  "v6.4": {
+    "description": "affinity 확장으로 요청된 CPU_IDLE 재분산에만 hot 완화 적용",
+    "patch_sha256": "9736e8adc798beec40212b2c06676660ade64951bd116a99e15b411b7375ecf6",
+    "snapshot_provenance": "Preserved measured candidate fair.c; unchanged v6 core.c, sched.h and debug.c verified by SHA256.",
+    "files": {
+      "kernel/sched/core.c": "cde531417dd5098f399bcdb60bd4be3a80cc5eeffc9b768846f6d53070aeb4b3",
+      "kernel/sched/sched.h": "d2934a38d11e922539ab4999f6f6c641e8fe366adde5f069b31e71d63784b9e4",
+      "kernel/sched/debug.c": "717260abbfa58aa08776bc395a323ee468469604fdce5a0c4d72f8381f38f38e",
+      "kernel/sched/fair.c": "9162c655563fd80e9d487bdb8a94ea6a63ddadcb279c5ef841eabb9519a2c980"
+    }
+  },
+  "v6.5": {
+    "description": "affinity 확장 후 원래 runqueue의 16ms 구간에서 idle 목적지에 hot 완화 적용",
+    "patch_sha256": "6cf8da0aa32ab7d45e64d0dd2e0a8b9ebdf620f10b428175fcdecc984449f0d4",
+    "snapshot_provenance": "Preserved measured candidate fair.c; unchanged v6 core.c, sched.h and debug.c verified by SHA256.",
+    "files": {
+      "kernel/sched/core.c": "cde531417dd5098f399bcdb60bd4be3a80cc5eeffc9b768846f6d53070aeb4b3",
+      "kernel/sched/sched.h": "d2934a38d11e922539ab4999f6f6c641e8fe366adde5f069b31e71d63784b9e4",
+      "kernel/sched/debug.c": "717260abbfa58aa08776bc395a323ee468469604fdce5a0c4d72f8381f38f38e",
+      "kernel/sched/fair.c": "44e927a56c44e432bad74f8eb7729682c38664ff50cb048dc8bd5508a2dddc77"
+    }
   }
 }

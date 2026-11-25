@@ -1,0 +1,516 @@
+--- a/kernel/sched/core.c
++++ b/kernel/sched/core.c
+@@ -1728,6 +1728,9 @@
+ 	struct rq_flags rf;
+ 	struct rq *rq;
+ 	int ret = 0;
++#if defined(CONFIG_SMP) && defined(CONFIG_IRQ_WORK)
++	bool affinity_expanded;
++#endif
+ 
+ 	rq = task_rq_lock(p, &rf);
+ 	update_rq_clock(rq);
+@@ -1757,7 +1760,18 @@
+ 		goto out;
+ 	}
+ 
++#if defined(CONFIG_SMP) && defined(CONFIG_IRQ_WORK)
++	/* Equal masks returned above, so this detects a strict superset. */
++	affinity_expanded = cpumask_subset(&p->cpus_mask, new_mask);
++#endif
+ 	do_set_cpus_allowed(p, new_mask);
++
++#if defined(CONFIG_SMP) && defined(CONFIG_IRQ_WORK)
++	if (affinity_expanded && !(p->flags & PF_KTHREAD) &&
++	    p->sched_class == &fair_sched_class &&
++	    task_on_rq_queued(p) && rq->cfs.h_nr_running > 1)
++		sched_affinity_rebalance(rq, new_mask);
++#endif
+ 
+ 	if (p->flags & PF_KTHREAD) {
+ 		/*
+--- a/kernel/sched/sched.h
++++ b/kernel/sched/sched.h
+@@ -1878,6 +1878,15 @@
+ extern void init_sched_rt_class(void);
+ extern void init_sched_fair_class(void);
+ 
++#if defined(CONFIG_SMP) && defined(CONFIG_IRQ_WORK)
++void sched_affinity_rebalance(struct rq *source,
++			      const struct cpumask *allowed);
++DECLARE_PER_CPU(unsigned long, sched_affinity_hints);
++DECLARE_PER_CPU(unsigned long, sched_affinity_queues);
++DECLARE_PER_CPU(unsigned long, sched_affinity_works);
++DECLARE_PER_CPU(unsigned long, sched_affinity_resets);
++#endif
++
+ extern void reweight_task(struct task_struct *p, int prio);
+ 
+ extern void resched_curr(struct rq *rq);
+--- a/kernel/sched/debug.c
++++ b/kernel/sched/debug.c
+@@ -667,6 +667,17 @@
+ #undef P
+ #undef PN
+ 
++#if defined(CONFIG_SMP) && defined(CONFIG_IRQ_WORK)
++	SEQ_printf(m, "  .%-30s: %lu\n", "affinity_hints",
++		   per_cpu(sched_affinity_hints, cpu));
++	SEQ_printf(m, "  .%-30s: %lu\n", "affinity_queues",
++		   per_cpu(sched_affinity_queues, cpu));
++	SEQ_printf(m, "  .%-30s: %lu\n", "affinity_works",
++		   per_cpu(sched_affinity_works, cpu));
++	SEQ_printf(m, "  .%-30s: %lu\n", "affinity_resets",
++		   per_cpu(sched_affinity_resets, cpu));
++#endif
++
+ #ifdef CONFIG_SMP
+ #define P64(n) SEQ_printf(m, "  .%-30s: %Ld\n", #n, rq->n);
+ 	P64(avg_idle);
+--- a/kernel/sched/fair.c
++++ b/kernel/sched/fair.c
+@@ -22,6 +22,10 @@
+  */
+ #include "sched.h"
+ 
++#include <linux/irq_work.h>
++#include <linux/module.h>
++#include <linux/seq_file.h>
++#include <linux/timekeeping.h>
+ #include <trace/events/sched.h>
+ 
+ /*
+@@ -7172,6 +7176,7 @@
+ 	struct cpumask		*dst_grpmask;
+ 	int			new_dst_cpu;
+ 	enum cpu_idle_type	idle;
++	bool			affinity_reset;
+ 	long			imbalance;
+ 	/* The set of CPUs under consideration for load-balancing */
+ 	struct cpumask		*cpus;
+@@ -7187,14 +7192,148 @@
+ 	struct list_head	tasks;
+ };
+ 
++
++/*
++ * Experimental hot policies, switched only between benchmark trials:
++ * 0: v6, 1: v6.2, 2: v6.4, 3: v6.5 (bounded source-rq window).
++ * All modes retain v6's affinity kick. This is not an upstream-kernel control.
++ */
++static unsigned int sched_hot_policy __read_mostly;
++static DEFINE_PER_CPU(u64, sched_hot_expires);
++static DEFINE_STATIC_KEY_FALSE(sched_hot_diagnostics);
++static DEFINE_MUTEX(sched_hot_control_mutex);
++
++struct sched_hot_counters {
++	unsigned long calls;
++	unsigned long buddy_hot;
++	unsigned long always_hot;
++	unsigned long cost_disabled;
++	unsigned long threshold_checks;
++	unsigned long threshold_reduced;
++	unsigned long original_hot;
++	unsigned long relaxed_hot;
++	unsigned long relaxed_idle;
++	unsigned long relaxed_newidle;
++	unsigned long final_hot;
++	unsigned long window_marks;
++};
++static DEFINE_PER_CPU(struct sched_hot_counters, sched_hot_counters);
++
++#define HOT_COUNT(field) do { \
++	if (static_branch_unlikely(&sched_hot_diagnostics)) \
++		this_cpu_inc(sched_hot_counters.field); \
++} while (0)
++
++#ifdef CONFIG_SCHED_DEBUG
++static int sched_hot_policy_get(void *data, u64 *value)
++{
++	*value = READ_ONCE(sched_hot_policy);
++	return 0;
++}
++
++static int sched_hot_policy_set(void *data, u64 value)
++{
++	unsigned long flags;
++	int cpu;
++
++	if (value > 3)
++		return -EINVAL;
++	mutex_lock(&sched_hot_control_mutex);
++	/* Stop new marks, then clear every source-rq window under its lock. */
++	WRITE_ONCE(sched_hot_policy, 0);
++	for_each_possible_cpu(cpu) {
++		struct rq *rq = cpu_rq(cpu);
++
++		raw_spin_lock_irqsave(&rq->lock, flags);
++		WRITE_ONCE(per_cpu(sched_hot_expires, cpu), 0);
++		raw_spin_unlock_irqrestore(&rq->lock, flags);
++	}
++	WRITE_ONCE(sched_hot_policy, (unsigned int)value);
++	mutex_unlock(&sched_hot_control_mutex);
++	return 0;
++}
++DEFINE_SIMPLE_ATTRIBUTE(sched_hot_policy_fops, sched_hot_policy_get,
++			sched_hot_policy_set, "%llu\n");
++
++static int sched_hot_diagnostics_get(void *data, u64 *value)
++{
++	*value = static_branch_unlikely(&sched_hot_diagnostics);
++	return 0;
++}
++
++static int sched_hot_diagnostics_set(void *data, u64 value)
++{
++	if (value > 1)
++		return -EINVAL;
++	mutex_lock(&sched_hot_control_mutex);
++	if (value)
++		static_branch_enable(&sched_hot_diagnostics);
++	else
++		static_branch_disable(&sched_hot_diagnostics);
++	mutex_unlock(&sched_hot_control_mutex);
++	return 0;
++}
++DEFINE_SIMPLE_ATTRIBUTE(sched_hot_diagnostics_fops, sched_hot_diagnostics_get,
++			sched_hot_diagnostics_set, "%llu\n");
++
++static int sched_hot_stats_show(struct seq_file *m, void *v)
++{
++	int cpu;
++
++	seq_printf(m, "policy %u\ndiagnostics %u\nwindow_ms 16\n",
++		   READ_ONCE(sched_hot_policy),
++		   !!static_branch_unlikely(&sched_hot_diagnostics));
++	for_each_possible_cpu(cpu) {
++		struct sched_hot_counters *c = &per_cpu(sched_hot_counters, cpu);
++
++		seq_printf(m, "cpu %d", cpu);
++#define HOT_PRINT(field) seq_printf(m, " " #field "=%lu", READ_ONCE(c->field))
++		HOT_PRINT(calls);
++		HOT_PRINT(buddy_hot);
++		HOT_PRINT(always_hot);
++		HOT_PRINT(cost_disabled);
++		HOT_PRINT(threshold_checks);
++		HOT_PRINT(threshold_reduced);
++		HOT_PRINT(original_hot);
++		HOT_PRINT(relaxed_hot);
++		HOT_PRINT(relaxed_idle);
++		HOT_PRINT(relaxed_newidle);
++		HOT_PRINT(final_hot);
++		HOT_PRINT(window_marks);
++#undef HOT_PRINT
++		seq_putc(m, '\n');
++	}
++	return 0;
++}
++DEFINE_SHOW_ATTRIBUTE(sched_hot_stats);
++
++static int __init sched_hot_debug_init(void)
++{
++	struct dentry *dir = debugfs_create_dir("sched_hot_v65", NULL);
++
++	if (IS_ERR_OR_NULL(dir))
++		return 0;
++	debugfs_create_file("policy", 0600, dir, NULL, &sched_hot_policy_fops);
++	debugfs_create_file("diagnostics", 0600, dir, NULL,
++			    &sched_hot_diagnostics_fops);
++	debugfs_create_file("stats", 0400, dir, NULL, &sched_hot_stats_fops);
++	return 0;
++}
++late_initcall(sched_hot_debug_init);
++#endif
++
+ /*
+  * Is this task likely cache-hot:
+  */
+ static int task_hot(struct task_struct *p, struct lb_env *env)
+ {
+ 	s64 delta;
++	s64 migration_cost;
++	unsigned int policy, original_cost;
++	bool relax = false;
+ 
+ 	lockdep_assert_held(&env->src_rq->lock);
++	HOT_COUNT(calls);
+ 
+ 	if (p->sched_class != &fair_sched_class)
+ 		return 0;
+@@ -7207,17 +7346,65 @@
+ 	 */
+ 	if (sched_feat(CACHE_HOT_BUDDY) && env->dst_rq->nr_running &&
+ 			(&p->se == cfs_rq_of(&p->se)->next ||
+-			 &p->se == cfs_rq_of(&p->se)->last))
++			 &p->se == cfs_rq_of(&p->se)->last)) {
++		HOT_COUNT(buddy_hot);
+ 		return 1;
+-
+-	if (sysctl_sched_migration_cost == -1)
++	}
++
++	original_cost = READ_ONCE(sysctl_sched_migration_cost);
++	if (original_cost == (unsigned int)-1) {
++		HOT_COUNT(always_hot);
+ 		return 1;
+-	if (sysctl_sched_migration_cost == 0)
++	}
++	if (original_cost == 0) {
++		HOT_COUNT(cost_disabled);
+ 		return 0;
++	}
+ 
+ 	delta = rq_clock_task(env->src_rq) - p->se.exec_start;
+ 
+-	return delta < (s64)sysctl_sched_migration_cost;
++	migration_cost = original_cost;
++	policy = READ_ONCE(sched_hot_policy);
++	if (policy == 1) {
++		relax = env->idle == CPU_NEWLY_IDLE;
++	} else if (policy == 2) {
++		relax = env->affinity_reset && env->idle == CPU_IDLE;
++	} else if (policy == 3 && env->idle != CPU_NOT_IDLE &&
++		   !READ_ONCE(env->dst_rq->nr_running)) {
++		u64 expires = per_cpu(sched_hot_expires, env->src_cpu);
++
++		/* The source-rq lock protects this 64-bit field on all targets. */
++		if (expires) {
++			if (ktime_get_ns() < expires)
++				relax = true;
++			else
++				per_cpu(sched_hot_expires, env->src_cpu) = 0;
++		}
++	}
++	if (relax && env->src_rq->cfs.h_nr_running > 1) {
++		if (env->src_rq->cfs.h_nr_running > 2)
++			migration_cost /= 4;
++		else
++			migration_cost /= 2;
++	}
++	/* Predicate evaluations, not successful migrations. Disabled for timing. */
++	if (static_branch_unlikely(&sched_hot_diagnostics)) {
++		this_cpu_inc(sched_hot_counters.threshold_checks);
++		if (migration_cost != original_cost)
++			this_cpu_inc(sched_hot_counters.threshold_reduced);
++		if (delta < (s64)original_cost)
++			this_cpu_inc(sched_hot_counters.original_hot);
++		if (delta < migration_cost) {
++			this_cpu_inc(sched_hot_counters.final_hot);
++		} else if (delta < (s64)original_cost) {
++			this_cpu_inc(sched_hot_counters.relaxed_hot);
++			if (env->idle == CPU_NEWLY_IDLE)
++				this_cpu_inc(sched_hot_counters.relaxed_newidle);
++			else if (env->idle == CPU_IDLE)
++				this_cpu_inc(sched_hot_counters.relaxed_idle);
++		}
++	}
++	return delta < migration_cost;
+ }
+ 
+ #ifdef CONFIG_NUMA_BALANCING
+@@ -8881,7 +9068,7 @@
+  */
+ static int load_balance(int this_cpu, struct rq *this_rq,
+ 			struct sched_domain *sd, enum cpu_idle_type idle,
+-			int *continue_balancing)
++			int *continue_balancing, bool affinity_reset)
+ {
+ 	int ld_moved, cur_ld_moved, active_balance = 0;
+ 	struct sched_domain *sd_parent = sd->parent;
+@@ -8896,6 +9083,7 @@
+ 		.dst_rq		= this_rq,
+ 		.dst_grpmask    = sched_group_span(sd->groups),
+ 		.idle		= idle,
++		.affinity_reset = affinity_reset,
+ 		.loop_break	= sched_nr_migrate_break,
+ 		.cpus		= cpus,
+ 		.fbq_type	= all,
+@@ -9289,7 +9477,8 @@
+  *
+  * Balancing parameters are set up in init_sched_domains.
+  */
+-static void rebalance_domains(struct rq *rq, enum cpu_idle_type idle)
++static void rebalance_domains(struct rq *rq, enum cpu_idle_type idle,
++			      bool affinity_reset)
+ {
+ 	int continue_balancing = 1;
+ 	int cpu = rq->cpu;
+@@ -9337,8 +9526,20 @@
+ 				goto out;
+ 		}
+ 
+-		if (time_after_eq(jiffies, sd->last_balance + interval)) {
+-			if (load_balance(cpu, rq, sd, idle, &continue_balancing)) {
++		if (affinity_reset) {
++			/* An expanded mask invalidates the previous backoff. */
++			sd->balance_interval = sd->min_interval;
++			interval = get_sd_balance_interval(sd,
++						  idle != CPU_IDLE);
++#ifdef CONFIG_IRQ_WORK
++			this_cpu_inc(sched_affinity_resets);
++#endif
++		}
++
++		if (affinity_reset ||
++		    time_after_eq(jiffies, sd->last_balance + interval)) {
++			if (load_balance(cpu, rq, sd, idle, &continue_balancing,
++					 affinity_reset)) {
+ 				/*
+ 				 * The LBF_DST_PINNED logic could have changed
+ 				 * env->dst_cpu, so we can't know our idle
+@@ -9395,6 +9596,80 @@
+ 	return unlikely(!rcu_dereference_sched(rq->sd));
+ }
+ 
++#ifdef CONFIG_IRQ_WORK
++struct affinity_balance_work {
++	struct irq_work work;
++	unsigned int pending;
++};
++
++static DEFINE_PER_CPU_SHARED_ALIGNED(struct affinity_balance_work,
++				    affinity_balance_work);
++DEFINE_PER_CPU(unsigned long, sched_affinity_hints);
++DEFINE_PER_CPU(unsigned long, sched_affinity_queues);
++DEFINE_PER_CPU(unsigned long, sched_affinity_works);
++DEFINE_PER_CPU(unsigned long, sched_affinity_resets);
++
++static void affinity_balance_irq(struct irq_work *work)
++{
++	struct affinity_balance_work *state;
++
++	state = container_of(work, struct affinity_balance_work, work);
++	this_cpu_inc(sched_affinity_works);
++	if (!cpu_active(smp_processor_id())) {
++		WRITE_ONCE(state->pending, 0);
++		return;
++	}
++
++	WRITE_ONCE(state->pending, 1);
++	raise_softirq_irqoff(SCHED_SOFTIRQ);
++}
++
++void sched_affinity_rebalance(struct rq *source,
++			      const struct cpumask *allowed)
++{
++	int cpu;
++
++	/* Preemption is disabled; CPU deactivation waits for these readers. */
++	lockdep_assert_held(&source->lock);
++	if (READ_ONCE(sched_hot_policy) == 3) {
++		/* Only mark a deadline; no timer or repeated IPI is added. */
++		per_cpu(sched_hot_expires, cpu_of(source)) =
++			ktime_get_ns() + 16 * NSEC_PER_MSEC;
++		HOT_COUNT(window_marks);
++	}
++	this_cpu_inc(sched_affinity_hints);
++	rcu_read_lock();
++	for_each_cpu_and(cpu, allowed, cpu_active_mask) {
++		struct rq *target = cpu_rq(cpu);
++		struct affinity_balance_work *state;
++
++		if (cpu == cpu_of(source) || on_null_domain(target) ||
++		    !cpumask_test_cpu(cpu_of(source), target->rd->span))
++			continue;
++
++		state = &per_cpu(affinity_balance_work, cpu);
++		if (irq_work_queue_on(&state->work, cpu))
++			this_cpu_inc(sched_affinity_queues);
++	}
++	rcu_read_unlock();
++}
++
++static bool take_affinity_balance(void)
++{
++	struct affinity_balance_work *state;
++
++	state = this_cpu_ptr(&affinity_balance_work);
++	if (likely(!READ_ONCE(state->pending)))
++		return false;
++	return xchg(&state->pending, 0);
++}
++#else
++static bool take_affinity_balance(void)
++{
++	return false;
++}
++#endif
++
+ #ifdef CONFIG_NO_HZ_COMMON
+ /*
+  * idle load balancing details
+@@ -9740,7 +10015,7 @@
+ 			rq_unlock_irqrestore(rq, &rf);
+ 
+ 			if (flags & NOHZ_BALANCE_KICK)
+-				rebalance_domains(rq, CPU_IDLE);
++				rebalance_domains(rq, CPU_IDLE, false);
+ 		}
+ 
+ 		if (time_after(next_balance, rq->next_balance)) {
+@@ -9764,7 +10039,7 @@
+ 	}
+ 
+ 	if (flags & NOHZ_BALANCE_KICK)
+-		rebalance_domains(this_rq, CPU_IDLE);
++		rebalance_domains(this_rq, CPU_IDLE, false);
+ 
+ 	WRITE_ONCE(nohz.next_blocked,
+ 		now + msecs_to_jiffies(LOAD_AVG_PERIOD));
+@@ -9918,7 +10193,7 @@
+ 
+ 			pulled_task = load_balance(this_cpu, this_rq,
+ 						   sd, CPU_NEWLY_IDLE,
+-						   &continue_balancing);
++						   &continue_balancing, false);
+ 
+ 			domain_cost = sched_clock_cpu(this_cpu) - t0;
+ 			if (domain_cost > sd->max_newidle_lb_cost)
+@@ -9977,6 +10252,15 @@
+ 	struct rq *this_rq = this_rq();
+ 	enum cpu_idle_type idle = this_rq->idle_balance ?
+ 						CPU_IDLE : CPU_NOT_IDLE;
++	bool affinity_reset = take_affinity_balance();
++
++	if (affinity_reset) {
++		/* Do local work even if the ordinary NOHZ pass aborts. */
++		idle = idle_cpu(this_rq->cpu) ? CPU_IDLE : CPU_NOT_IDLE;
++		update_blocked_averages(this_rq->cpu);
++		rebalance_domains(this_rq, idle, true);
++		idle = idle_cpu(this_rq->cpu) ? CPU_IDLE : CPU_NOT_IDLE;
++	}
+ 
+ 	/*
+ 	 * If this CPU has a pending nohz_balance_kick, then do the
+@@ -9988,10 +10272,12 @@
+ 	 */
+ 	if (nohz_idle_balance(this_rq, idle))
+ 		return;
++	if (affinity_reset)
++		return;
+ 
+ 	/* normal load balance */
+ 	update_blocked_averages(this_rq->cpu);
+-	rebalance_domains(this_rq, idle);
++	rebalance_domains(this_rq, idle, false);
+ }
+ 
+ /*
+@@ -10610,6 +10896,17 @@
+ __init void init_sched_fair_class(void)
+ {
+ #ifdef CONFIG_SMP
++#ifdef CONFIG_IRQ_WORK
++	int cpu;
++
++	for_each_possible_cpu(cpu) {
++		struct affinity_balance_work *state;
++
++		state = &per_cpu(affinity_balance_work, cpu);
++		init_irq_work(&state->work, affinity_balance_irq);
++		state->pending = 0;
++	}
++#endif
+ 	open_softirq(SCHED_SOFTIRQ, run_rebalance_domains);
+ 
+ #ifdef CONFIG_NO_HZ_COMMON
